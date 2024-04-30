@@ -13,8 +13,10 @@ import { openModal } from "@utils/modal";
 import definePlugin from "@utils/types";
 import {
     Button,
+    Forms,
     SettingsRouter,
 } from "@webpack/common";
+import { Plugins } from "Vencord";
 
 import ColorPickerModal from "./components/ColorPicker";
 import ColorwaysButton from "./components/ColorwaysButton";
@@ -41,7 +43,7 @@ export let ColorPicker: React.FunctionComponent<ColorPickerProps> = () => {
         onDemandWaysTintedText,
         useThinMenuButton,
         onDemandWaysDiscordSaturation,
-        onDemandWaysColorArray
+        onDemandWaysOsAccentColor
     ] = await DataStore.getMany([
         "customColorways",
         "colorwaySourceFiles",
@@ -50,7 +52,7 @@ export let ColorPicker: React.FunctionComponent<ColorPickerProps> = () => {
         "onDemandWaysTintedText",
         "useThinMenuButton",
         "onDemandWaysDiscordSaturation",
-        "onDemandWaysColorArray"
+        "onDemandWaysOsAccentColor"
     ]);
 
     const defaults = [
@@ -61,7 +63,7 @@ export let ColorPicker: React.FunctionComponent<ColorPickerProps> = () => {
         { name: "onDemandWaysTintedText", checkedValue: onDemandWaysTintedText, defaults: true },
         { name: "useThinMenuButton", checkedValue: useThinMenuButton, defaults: false },
         { name: "onDemandWaysDiscordSaturation", checkedValue: onDemandWaysDiscordSaturation, defaults: false },
-        { name: "onDemandWaysColorArray", checkedValue: onDemandWaysColorArray, defaults: ["313338", "2b2d31", "1e1f22", "5865f2"] }
+        { name: "onDemandWaysOsAccentColor", checkedValue: onDemandWaysOsAccentColor, defaults: false }
     ];
 
     defaults.forEach(({ name, checkedValue, defaults }) => {
@@ -85,8 +87,8 @@ export const ColorwayCSS = {
 };
 
 export const versionData = {
-    pluginVersion: "5.6.6",
-    creatorVersion: "1.19",
+    pluginVersion: "5.6.7",
+    creatorVersion: "1.19.5",
 };
 
 export default definePlugin({
@@ -149,9 +151,23 @@ export default definePlugin({
     makeSettingsCategories(SectionTypes: Record<string, unknown>) {
         return [
             {
-                section: SectionTypes.HEADER,
+                section: SectionTypes.CUSTOM,
                 label: "Discord Colorways",
-                className: "vc-settings-header"
+                className: "vc-settings-header",
+                element: () => <Forms.FormTitle style={{
+                    marginBottom: 0,
+                    padding: "6px 10px",
+                    color: "var(--channels-default)",
+                    display: "flex",
+                    justifyContent: "space-between"
+                }}>
+                    Discord Colorways
+                    <Forms.FormTitle style={{
+                        marginBottom: 0,
+                        color: "var(--channels-default)",
+                        marginLeft: "auto"
+                    }}>v{(Plugins.plugins.DiscordColorways as any).pluginVersion}</Forms.FormTitle>
+                </Forms.FormTitle>
             },
             {
                 section: "ColorwaysSelector",
