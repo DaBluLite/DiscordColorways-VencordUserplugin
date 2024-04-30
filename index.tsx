@@ -87,7 +87,7 @@ export const ColorwayCSS = {
 };
 
 export const versionData = {
-    pluginVersion: "5.6.7",
+    pluginVersion: "5.6.7.1",
     creatorVersion: "1.19.5",
 };
 
