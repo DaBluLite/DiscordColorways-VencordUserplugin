@@ -22,7 +22,6 @@ import {
     SettingsRouter,
     TextInput,
     Tooltip,
-    useCallback,
     useEffect,
     useState,
 } from "@webpack/common";
@@ -134,11 +133,9 @@ export default function ({
         setCurrentColorway(baseData[1]);
     }
 
-    const cached_loadUI = useCallback(loadUI, [setColorways, setCustomColorways, setCurrentColorway]);
-
     async function searchColorways(e: string) {
         if (!e) {
-            cached_loadUI();
+            loadUI();
             return;
         }
         const colorwaySourceFiles = await DataStore.get("colorwaySourceFiles");
@@ -172,7 +169,7 @@ export default function ({
 
     useEffect(() => {
         if (!searchString) {
-            cached_loadUI();
+            loadUI();
         }
         setLoaderHeight("0px");
     }, [searchString]);
@@ -249,7 +246,7 @@ export default function ({
                                     onMouseLeave={isShown ? () => { } : onMouseLeave}
                                     onClick={() => {
                                         setLoaderHeight("2px");
-                                        cached_loadUI().then(() => setLoaderHeight("0px"));
+                                        loadUI().then(() => setLoaderHeight("0px"));
                                     }}
                                     onContextMenu={() => { onMouseLeave(); setShowReloadMenu(v => !v); }}
                                 >
@@ -288,7 +285,7 @@ export default function ({
                         onMouseLeave={onMouseLeave}
                         onClick={() => openModal((props) => <CreatorModal
                             modalProps={props}
-                            loadUIProps={cached_loadUI}
+                            loadUIProps={loadUI}
                         />)}
                     >
                         <svg
@@ -328,18 +325,14 @@ export default function ({
             <SelectorContent isSettings={isSettings}>
                 <div className="colorwaysLoader-barContainer"><div className="colorwaysLoader-bar" style={{ height: loaderHeight }} /></div>
                 <ScrollerThin style={{ maxHeight: "450px" }} className="ColorwaySelectorWrapper">
-                    {getComputedStyle(document.body).getPropertyValue("--os-accent-color") ? <Tooltip text="Auto">
+                    {getComputedStyle(document.body).getPropertyValue("--os-accent-color") && ["all", "official"].includes(visibility) ? <Tooltip text="Auto">
                         {({ onMouseEnter, onMouseLeave }) => <div
                             className="discordColorway"
                             id="colorway-Auto"
                             onMouseEnter={onMouseEnter}
                             onMouseLeave={onMouseLeave}
                             onClick={async () => {
-                                const [
-                                    activeAutoPreset
-                                ] = await DataStore.getMany([
-                                    "activeAutoPreset"
-                                ]);
+                                const activeAutoPreset = await DataStore.get("activeAutoPreset");
                                 if (currentColorway === "Auto") {
                                     DataStore.set("actveColorwayID", null);
                                     DataStore.set("actveColorway", null);
@@ -471,7 +464,7 @@ export default function ({
                                                                 discrimProps={customColorways.includes(
                                                                     color
                                                                 )}
-                                                                loadUIProps={cached_loadUI}
+                                                                loadUIProps={loadUI}
                                                             />
                                                         ));
                                                     }}

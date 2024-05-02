@@ -24,7 +24,7 @@ import {
 } from "@webpack/common";
 
 import { ColorPicker } from "..";
-import { knownThemeVars } from "../constants";
+import { fallbackColorways, knownThemeVars } from "../constants";
 import { generateCss, getPreset, gradientPresetIds, pureGradientBase } from "../css";
 import { Colorway } from "../types";
 import { colorToHex, getHex, hexToString } from "../utils";
@@ -48,10 +48,10 @@ export default function ({
     const [colorwayName, setColorwayName] = useState<string>("");
     const [tintedText, setTintedText] = useState<boolean>(true);
     const [discordSaturation, setDiscordSaturation] = useState<boolean>(true);
-    const [collapsedSettings, setCollapsedSettings] = useState<boolean>(true);
-    const [collapsedPresets, setCollapsedPresets] = useState<boolean>(true);
     const [preset, setPreset] = useState<string>("default");
-    const [presetColorArray, setPresetColorArray] = useState<string[]>(["primary", "secondary", "tertiary", "accent"]);
+    const [presetColorArray, setPresetColorArray] = useState<string[]>(["accent", "primary", "secondary", "tertiary"]);
+    const [colorwayNames, setColorwayNames] = useState<string[]>(["Auto"]);
+    const [nameError, setNameError] = useState<string>();
 
     const colorProps = {
         accent: {
@@ -93,6 +93,23 @@ export default function ({
                 hexToString(parsedID).split(/,#/).forEach((color: string, i: number) => setColor[i](colorToHex(color)));
             }
         }
+        (async function () {
+            const colorwaySourceFiles = await DataStore.get(
+                "colorwaySourceFiles"
+            );
+            const responses: Response[] = await Promise.all(
+                colorwaySourceFiles.map((url: string) =>
+                    fetch(url)
+                )
+            );
+            const data = await Promise.all(
+                responses.map((res: Response) =>
+                    res.json().catch(() => { return { colorways: [] }; })
+                ));
+            const colorways = data.flatMap(json => json.colorways);
+            const customColorways = await DataStore.get("customColorways");
+            setColorwayNames([...colorwayNames, ...(colorways || fallbackColorways).map((color: Colorway) => color.name), ...customColorways.map((color: Colorway) => color.name)]);
+        })();
     });
     const colorPickerProps = {
         suggestedColors: [
@@ -119,6 +136,7 @@ export default function ({
                     placeholder="Give your Colorway a name"
                     value={colorwayName}
                     onChange={setColorwayName}
+                    error={nameError}
                 />
                 <div className="colorwaysCreator-settingCat">
                     <Forms.FormTitle style={{ marginBottom: "0" }}>
@@ -160,12 +178,10 @@ export default function ({
                     </svg>
                 </div>
                 <ThemePreviewCategory
-                    isCollapsed={false}
                     accent={"#" + accentColor}
                     primary={"#" + primaryColor}
                     secondary={"#" + secondaryColor}
                     tertiary={"#" + tertiaryColor}
-                    noContainer
                     previewCSS={gradientPresetIds.includes(getPreset()[preset].id) ? pureGradientBase + `.colorwaysPreview-modal,.colorwaysPreview-wrapper {--gradient-theme-bg: linear-gradient(${(getPreset(
                         primaryColor,
                         secondaryColor,
@@ -181,6 +197,10 @@ export default function ({
                     size={Button.Sizes.MEDIUM}
                     look={Button.Looks.FILLED}
                     onClick={e => {
+                        setNameError("");
+                        if (colorwayNames.includes(colorwayName)) {
+                            return setNameError("Error: A colorway with that name already exists");
+                        }
                         var customColorwayCSS: string = "";
                         if (preset === "default") {
                             customColorwayCSS = generateCss(
@@ -193,17 +213,17 @@ export default function ({
                             );
                         } else {
                             gradientPresetIds.includes(getPreset()[preset].id) ?
-                                customColorwayCSS = getPreset(
+                                customColorwayCSS = (getPreset(
                                     primaryColor,
                                     secondaryColor,
                                     tertiaryColor,
                                     accentColor
-                                )[preset].preset(discordSaturation).full : customColorwayCSS = getPreset(
+                                )[preset].preset(discordSaturation) as { full: string; }).full : customColorwayCSS = (getPreset(
                                     primaryColor,
                                     secondaryColor,
                                     tertiaryColor,
                                     accentColor
-                                )[preset].preset(discordSaturation);
+                                )[preset].preset(discordSaturation) as string);
                         }
                         const customColorway: Colorway = {
                             name: (colorwayName || "Colorway") + (preset === "default" ? "" : ": Made for " + getPreset()[preset].name),
@@ -216,12 +236,12 @@ export default function ({
                             author: UserStore.getCurrentUser().username,
                             authorID: UserStore.getCurrentUser().id,
                             isGradient: gradientPresetIds.includes(getPreset()[preset].id),
-                            linearGradient: gradientPresetIds.includes(getPreset()[preset].id) ? getPreset(
+                            linearGradient: gradientPresetIds.includes(getPreset()[preset].id) ? (getPreset(
                                 primaryColor,
                                 secondaryColor,
                                 tertiaryColor,
                                 accentColor
-                            )[preset].preset(discordSaturation).base : null
+                            )[preset].preset(discordSaturation) as { base: string; }).base : ""
                         };
                         const customColorwaysArray: Colorway[] = [customColorway];
                         DataStore.get("customColorways").then(
@@ -326,3 +346,4 @@ export default function ({
         </ModalRoot>
     );
 }
+
