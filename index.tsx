@@ -16,7 +16,8 @@ import {
     Button,
     Clipboard,
     Forms,
-    SettingsRouter
+    SettingsRouter,
+    Toasts
 } from "@webpack/common";
 import { Plugins } from "Vencord";
 
@@ -92,7 +93,7 @@ export const ColorwayCSS = {
 };
 
 export const versionData = {
-    pluginVersion: "5.6.8",
+    pluginVersion: "5.6.9",
     creatorVersion: "1.19.6",
 };
 
@@ -230,46 +231,57 @@ export default definePlugin({
 
         addAccessory("colorways-btn", props => {
             if (String(props.message.content).match(/colorway:[0-9a-f]{0,100}/)) {
-                const parsedID = String(props.message.content).match(/colorway:[0-9a-f]{0,100}/)![0].split("colorway:")[1];
-                return <div className="colorwayMessage">
-                    <div className="discordColorwayPreviewColorContainer" style={{ width: "56px", height: "56px", marginRight: "16px" }}>
-                        {(() => {
-                            if (parsedID) {
-                                if (!parsedID) {
-                                    throw new Error("Please enter a Colorway ID");
-                                } else if (!hexToString(parsedID).includes(",")) {
-                                    throw new Error("Invalid Colorway ID");
-                                } else {
-                                    return hexToString(parsedID).split(/,#/).map((color: string) => <div className="discordColorwayPreviewColor" style={{ backgroundColor: `#${colorToHex(color)}` }} />);
-                                }
-                            } else return null;
-                        })()}
-                    </div>
-                    <div className="colorwayMessage-contents">
-                        <Forms.FormTitle>Found Colorway ID</Forms.FormTitle>
-                        <Flex>
-                            <Button
-                                onClick={() => openModal(modalProps => <CreatorModal
-                                    modalProps={modalProps}
-                                    colorwayID={String(props.message.content).match(/colorway:[0-9a-f]{0,100}/)![0]}
-                                />)}
-                                size={Button.Sizes.SMALL}
-                                color={Button.Colors.PRIMARY}
-                                look={Button.Looks.FILLED}
-                            >
-                                Add this Colorway...
-                            </Button>
-                            <Button
-                                onClick={() => Clipboard.copy(String(props.message.content).match(/colorway:[0-9a-f]{0,100}/)![0])}
-                                size={Button.Sizes.SMALL}
-                                color={Button.Colors.PRIMARY}
-                                look={Button.Looks.FILLED}
-                            >
-                                Copy Colorway ID
-                            </Button>
-                        </Flex>
-                    </div>
-                </div>;
+                return <Flex flexDirection="column">
+                    {String(props.message.content).match(/colorway:[0-9a-f]{0,100}/g)?.map((colorID: string) => {
+                        colorID = colorID.split("colorway:")[1];
+                        return <div className="colorwayMessage">
+                            <div className="discordColorwayPreviewColorContainer" style={{ width: "56px", height: "56px", marginRight: "16px" }}>
+                                {(() => {
+                                    if (colorID) {
+                                        if (!colorID) {
+                                            throw new Error("Please enter a Colorway ID");
+                                        } else if (!hexToString(colorID).includes(",")) {
+                                            throw new Error("Invalid Colorway ID");
+                                        } else {
+                                            return hexToString(colorID).split(/,#/).map((color: string) => <div className="discordColorwayPreviewColor" style={{ backgroundColor: `#${colorToHex(color)}` }} />);
+                                        }
+                                    } else return null;
+                                })()}
+                            </div>
+                            <div className="colorwayMessage-contents">
+                                <Forms.FormTitle>Found Colorway ID</Forms.FormTitle>
+                                <Flex>
+                                    <Button
+                                        onClick={() => openModal(modalProps => <CreatorModal
+                                            modalProps={modalProps}
+                                            colorwayID={colorID}
+                                        />)}
+                                        size={Button.Sizes.SMALL}
+                                        color={Button.Colors.PRIMARY}
+                                        look={Button.Looks.FILLED}
+                                    >
+                                        Add this Colorway...
+                                    </Button>
+                                    <Button
+                                        onClick={() => {
+                                            Clipboard.copy(colorID);
+                                            Toasts.show({
+                                                message: "Copied Colorway ID Successfully",
+                                                type: 1,
+                                                id: "copy-colorway-id-notify",
+                                            });
+                                        }}
+                                        size={Button.Sizes.SMALL}
+                                        color={Button.Colors.PRIMARY}
+                                        look={Button.Looks.FILLED}
+                                    >
+                                        Copy Colorway ID
+                                    </Button>
+                                </Flex>
+                            </div>
+                        </div>;
+                    })}
+                </Flex>;
             } else {
                 return null;
             }
