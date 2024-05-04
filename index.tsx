@@ -29,6 +29,7 @@ import Selector from "./components/Selector";
 import ManageColorwaysPage from "./components/SettingsTabs/ManageColorwaysPage";
 import OnDemandWaysPage from "./components/SettingsTabs/OnDemandPage";
 import SettingsPage from "./components/SettingsTabs/SettingsPage";
+import SourceManager from "./components/SettingsTabs/SourceManager";
 import Spinner from "./components/Spinner";
 import { defaultColorwaySource } from "./constants";
 import { getAutoPresets } from "./css";
@@ -93,7 +94,7 @@ export const ColorwayCSS = {
 };
 
 export const versionData = {
-    pluginVersion: "5.6.9.1",
+    pluginVersion: "5.7.0a1",
     creatorVersion: "1.19.6",
 };
 
@@ -202,6 +203,12 @@ export default definePlugin({
                 label: "Settings",
                 element: SettingsPage,
                 className: "dc-colorway-settings"
+            },
+            {
+                section: "ColorwaysSourceManager",
+                label: "Sources",
+                element: SourceManager,
+                className: "dc-colorway-sources-manager"
             },
             {
                 section: "ColorwaysOnDemand",
