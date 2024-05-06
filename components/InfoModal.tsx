@@ -12,6 +12,7 @@ import {
     ModalHeader,
     ModalProps,
     ModalRoot,
+    openModal,
 } from "@utils/modal";
 import { findComponentByCodeLazy } from "@webpack";
 import { Button, Clipboard, Forms, Text, Toasts, UserStore, useState, useStateFromStores } from "@webpack/common";
@@ -20,6 +21,7 @@ import { ColorwayCSS } from "..";
 import { generateCss, pureGradientBase } from "../css";
 import { Colorway } from "../types";
 import { colorToHex, stringToHex } from "../utils";
+import SaveColorwayModal from "./SaveColorwayModal";
 import ThemePreviewCategory from "./ThemePreview";
 
 const UserSummaryItem = findComponentByCodeLazy("defaultRenderUser", "showDefaultAvatarsForNullUsers");
@@ -27,12 +29,12 @@ const UserSummaryItem = findComponentByCodeLazy("defaultRenderUser", "showDefaul
 export default function ({
     modalProps,
     colorwayProps,
-    discrimProps = false,
+    offlineSourceName,
     loadUIProps
 }: {
     modalProps: ModalProps;
     colorwayProps: Colorway;
-    discrimProps?: boolean;
+    offlineSourceName?: string;
     loadUIProps: () => Promise<void>;
 }) {
     const colors: string[] = colorwayProps.colors || [
@@ -95,32 +97,22 @@ export default function ({
                         >
                             Copy Colorway ID
                         </Button>
-                        {discrimProps && <Button
+                        {offlineSourceName !== (null || "") && <Button
                             color={Button.Colors.RED}
                             size={Button.Sizes.MEDIUM}
                             look={Button.Looks.FILLED}
                             style={{ flex: "0 0 auto" }}
                             onClick={async () => {
-                                const customColorways = await DataStore.get("customColorways");
-                                const actveColorwayID = await DataStore.get("actveColorwayID");
-                                const customColorwaysArray: Colorway[] = [];
-                                customColorways.map((color: Colorway, i: number) => {
-                                    if (customColorways.length > 0) {
-                                        if (color.name !== colorwayProps.name) {
-                                            customColorwaysArray.push(color);
-                                        }
-                                        if (++i === customColorways.length) {
-                                            DataStore.set("customColorways", customColorwaysArray);
-                                        }
-                                        if (actveColorwayID === colorwayProps.name) {
-                                            DataStore.set("actveColorway", null);
-                                            DataStore.set("actveColorwayID", null);
-                                            ColorwayCSS.set("");
-                                        }
-                                        modalProps.onClose();
-                                        loadUIProps();
-                                    }
-                                });
+                                const oldStores = (await DataStore.get("customColorways") as { name: string, colorways: Colorway[], id?: string; }[]).filter(source => source.name !== offlineSourceName);
+                                const storeToModify = (await DataStore.get("customColorways") as { name: string, colorways: Colorway[], id?: string; }[]).filter(source => source.name === offlineSourceName)[0];
+                                const newStore = { name: storeToModify.name, colorways: storeToModify.colorways.filter(colorway => colorway.name !== colorwayProps.name) };
+                                DataStore.set("customColorways", [...oldStores, newStore]);
+                                if ((await DataStore.get("activeColorwayObject")).id === colorwayProps.name) {
+                                    DataStore.set("activeColorwayObject", { id: null, css: null, sourceType: null, source: null });
+                                    ColorwayCSS.remove();
+                                }
+                                modalProps.onClose();
+                                loadUIProps();
                             }}
                         >
                             Delete
@@ -161,26 +153,11 @@ export default function ({
                             look={Button.Looks.OUTLINED}
                             style={{ flex: "0 0 auto" }}
                             onClick={async () => {
-                                const customColorways = await DataStore.get("customColorways");
-                                const customColorwaysArray: Colorway[] = [];
-                                customColorways.map((color: Colorway, i: number) => {
-                                    if (customColorways.length > 0) {
-                                        if (color.name !== (colorwayProps.name + " (Custom)") && color.name !== colorwayProps.name) {
-                                            customColorwaysArray.push(color);
-                                        }
-                                        if (++i === customColorways.length) {
-                                            const newColorway = {
-                                                ...colorwayProps,
-                                                name: `${colorwayProps.name} (Custom)`,
-                                                "dc-import": generateCss(colorToHex(color.primary) || "313338", colorToHex(color.secondary) || "2b2d31", colorToHex(color.tertiary) || "1e1f22", colorToHex(color.accent) || "5865f2", true, true)
-                                            };
-                                            customColorwaysArray.push(newColorway);
-                                            DataStore.set("customColorways", customColorwaysArray);
-                                        }
-                                        modalProps.onClose();
-                                        loadUIProps();
-                                    }
-                                });
+                                const newColorway = {
+                                    ...colorwayProps,
+                                    "dc-import": generateCss(colorToHex(colorwayProps.primary) || "313338", colorToHex(colorwayProps.secondary) || "2b2d31", colorToHex(colorwayProps.tertiary) || "1e1f22", colorToHex(colorwayProps.accent) || "5865f2", true, true)
+                                };
+                                openModal(props => <SaveColorwayModal modalProps={props} colorway={newColorway} />);
                             }}
                         >
                             Update

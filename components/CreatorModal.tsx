@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import * as DataStore from "@api/DataStore";
 import {
     ModalContent,
     ModalFooter,
@@ -24,13 +23,14 @@ import {
 } from "@webpack/common";
 
 import { ColorPicker } from "..";
-import { fallbackColorways, knownThemeVars } from "../constants";
+import { knownThemeVars } from "../constants";
 import { generateCss, getPreset, gradientPresetIds, pureGradientBase } from "../css";
 import { Colorway } from "../types";
 import { colorToHex, getHex, hexToString } from "../utils";
 import ColorwayCreatorSettingsModal from "./ColorwayCreatorSettingsModal";
 import ConflictingColorsModal from "./ConflictingColorsModal";
 import InputColorwayIdModal from "./InputColorwayIdModal";
+import SaveColorwayModal from "./SaveColorwayModal";
 import ThemePreviewCategory from "./ThemePreview";
 export default function ({
     modalProps,
@@ -50,8 +50,6 @@ export default function ({
     const [discordSaturation, setDiscordSaturation] = useState<boolean>(true);
     const [preset, setPreset] = useState<string>("default");
     const [presetColorArray, setPresetColorArray] = useState<string[]>(["accent", "primary", "secondary", "tertiary"]);
-    const [colorwayNames, setColorwayNames] = useState<string[]>(["Auto"]);
-    const [nameError, setNameError] = useState<string>();
 
     const colorProps = {
         accent: {
@@ -90,23 +88,6 @@ export default function ({
                 hexToString(colorwayID).split(/,#/).forEach((color: string, i: number) => setColor[i](colorToHex(color)));
             }
         }
-        (async function () {
-            const colorwaySourceFiles = await DataStore.get(
-                "colorwaySourceFiles"
-            );
-            const responses: Response[] = await Promise.all(
-                colorwaySourceFiles.map((url: string) =>
-                    fetch(url)
-                )
-            );
-            const data = await Promise.all(
-                responses.map((res: Response) =>
-                    res.json().catch(() => { return { colorways: [] }; })
-                ));
-            const colorways = data.flatMap(json => json.colorways);
-            const customColorways = await DataStore.get("customColorways");
-            setColorwayNames([...colorwayNames, ...(colorways || fallbackColorways).map((color: Colorway) => color.name), ...customColorways.map((color: Colorway) => color.name)]);
-        })();
     });
     const colorPickerProps = {
         suggestedColors: [
@@ -133,7 +114,6 @@ export default function ({
                     placeholder="Give your Colorway a name"
                     value={colorwayName}
                     onChange={setColorwayName}
-                    error={nameError}
                 />
                 <div className="colorwaysCreator-settingCat">
                     <Forms.FormTitle style={{ marginBottom: "0" }}>
@@ -193,11 +173,7 @@ export default function ({
                     color={Button.Colors.BRAND}
                     size={Button.Sizes.MEDIUM}
                     look={Button.Looks.FILLED}
-                    onClick={e => {
-                        setNameError("");
-                        if (colorwayNames.includes(colorwayName)) {
-                            return setNameError("Error: A colorway with that name already exists");
-                        }
+                    onClick={async () => {
                         var customColorwayCSS: string = "";
                         if (preset === "default") {
                             customColorwayCSS = generateCss(
@@ -240,23 +216,14 @@ export default function ({
                                 accentColor
                             )[preset].preset(discordSaturation) as { base: string; }).base : ""
                         };
-                        const customColorwaysArray: Colorway[] = [customColorway];
-                        DataStore.get("customColorways").then(
-                            customColorways => {
-                                customColorways.forEach(
-                                    (color: Colorway, i: number) => {
-                                        if (color.name !== customColorway.name) {
-                                            customColorwaysArray.push(color);
-                                        }
-                                    }
-                                );
-                                DataStore.set("customColorways", customColorwaysArray);
-                            }
-                        );
-                        modalProps.onClose();
-                        loadUIProps!();
+                        openModal(props => <SaveColorwayModal modalProps={props} colorway={customColorway} onFinish={() => {
+                            modalProps.onClose();
+                            loadUIProps!();
+                        }} />);
                     }}
-                >Finish</Button>
+                >
+                    Finish
+                </Button>
                 <Button
                     style={{ marginLeft: 8 }}
                     color={Button.Colors.PRIMARY}

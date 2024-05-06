@@ -52,7 +52,7 @@ export default function () {
                 ));
             const colorways = data.flatMap(json => json.colorways);
             setColorways(colorways || fallbackColorways);
-            setCustomColorways(customColorways);
+            setCustomColorways(customColorways.map(source => source.colorways).flat(2));
             setColorsButtonVisibility(showColorwaysButton);
             setIsButtonThin(useThinMenuButton);
         })();
@@ -126,7 +126,7 @@ export default function () {
                         marginBottom: "8px"
                     }}
                 >
-                    {versionData.pluginVersion}{" (Alpha 1)"}
+                    {versionData.pluginVersion}
                 </Text>
                 <Forms.FormTitle style={{ marginBottom: 0 }}>
                     Creator Version:
@@ -154,7 +154,7 @@ export default function () {
                         marginBottom: "8px"
                     }}
                 >
-                    {[...colorways, ...customColorways].length}
+                    {[...colorways, ...customColorways].length + 1}
                 </Text>
                 <Forms.FormTitle style={{ marginBottom: 0 }}>
                     Project Repositories:

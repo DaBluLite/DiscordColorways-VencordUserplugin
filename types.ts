@@ -29,3 +29,16 @@ export interface ColorPickerProps {
     label: any;
     onChange(color: number): void;
 }
+
+export interface ColorwayObject {
+    id: string | null,
+    css: string | null,
+    sourceType: "online" | "offline" | null,
+    source: string | null;
+}
+
+export interface SourceObject {
+    type: "online" | "offline",
+    source: string,
+    colorways: Colorway[];
+}
