@@ -15,6 +15,7 @@ import {
 import {
     Button,
     Forms,
+    Slider,
     Text,
     TextInput,
     useEffect,
@@ -24,9 +25,9 @@ import {
 
 import { ColorPicker } from "..";
 import { knownThemeVars } from "../constants";
-import { generateCss, getPreset, gradientPresetIds, pureGradientBase } from "../css";
+import { generateCss, getPreset, gradientPresetIds, PrimarySatDiffs, pureGradientBase } from "../css";
 import { Colorway } from "../types";
-import { colorToHex, getHex, hexToString } from "../utils";
+import { colorToHex, getHex, HexToHSL, hexToString } from "../utils";
 import ColorwayCreatorSettingsModal from "./ColorwayCreatorSettingsModal";
 import ConflictingColorsModal from "./ConflictingColorsModal";
 import InputColorwayIdModal from "./InputColorwayIdModal";
@@ -50,6 +51,7 @@ export default function ({
     const [discordSaturation, setDiscordSaturation] = useState<boolean>(true);
     const [preset, setPreset] = useState<string>("default");
     const [presetColorArray, setPresetColorArray] = useState<string[]>(["accent", "primary", "secondary", "tertiary"]);
+    const [mutedTextBrightness, setMutedTextBrightness] = useState<number>(Math.min(HexToHSL("#" + primaryColor)[2] + (3.6 * 3), 100));
 
     const colorProps = {
         accent: {
@@ -76,7 +78,7 @@ export default function ({
 
     useEffect(() => {
         if (colorwayID) {
-            if (!hexToString(colorwayID).includes(",")) {
+            if (!colorwayID.includes(",")) {
                 throw new Error("Invalid Colorway ID");
             } else {
                 const setColor = [
@@ -85,7 +87,19 @@ export default function ({
                     setSecondaryColor,
                     setTertiaryColor
                 ];
-                hexToString(colorwayID).split(/,#/).forEach((color: string, i: number) => setColor[i](colorToHex(color)));
+                colorwayID.split("|").forEach((prop: string) => {
+                    if (prop.includes(",#")) {
+                        prop.split(/,#/).forEach((color: string, i: number) => setColor[i](colorToHex(color)));
+                    }
+                    if (prop.includes("n:")) {
+                        setColorwayName(prop.split("n:")[1]);
+                    }
+                    if (prop.includes("p:")) {
+                        if (Object.values(getPreset()).map(({ id }) => id).includes(prop.split("p:")[1])) {
+                            setPreset(prop.split("p:")[1]);
+                        }
+                    }
+                });
             }
         }
     });
@@ -117,7 +131,7 @@ export default function ({
                 />
                 <div className="colorwaysCreator-settingCat">
                     <Forms.FormTitle style={{ marginBottom: "0" }}>
-                        Colors:
+                        Colors & Values:
                     </Forms.FormTitle>
                     <div className="colorwayCreator-colorPreviews">
                         {presetColorArray.map(presetColor => {
@@ -135,6 +149,14 @@ export default function ({
                             />;
                         })}
                     </div>
+                    <Forms.FormDivider style={{ margin: "10px 0" }} />
+                    <Forms.FormTitle>Muted Text Brightness:</Forms.FormTitle>
+                    <Slider
+                        minValue={0}
+                        maxValue={100}
+                        initialValue={mutedTextBrightness}
+                        onValueChange={setMutedTextBrightness}
+                    />
                 </div>
                 <div
                     className="colorwaysCreator-setting"
@@ -164,7 +186,10 @@ export default function ({
                         secondaryColor,
                         tertiaryColor,
                         accentColor
-                    )[preset].preset(discordSaturation) as { full: string, base: string; }).base})}` : ""}
+                    )[preset].preset(discordSaturation) as { full: string, base: string; }).base})}` : (tintedText ? `.colorwaysPreview-modal,.colorwaysPreview-wrapper {
+                        --primary-500: hsl(${HexToHSL("#" + primaryColor)[0]} calc(var(--saturation-factor, 1)*${discordSaturation ? Math.round(((HexToHSL("#" + primaryColor)[1] / 100) * (100 + PrimarySatDiffs[500])) * 10) / 10 : HexToHSL("#" + primaryColor)[1]}%) ${mutedTextBrightness || Math.min(HexToHSL("#" + primaryColor)[2] + (3.6 * 3), 100)}%);
+                        --primary-360: hsl(${HexToHSL("#" + secondaryColor)[0]} calc(var(--saturation-factor, 1)*${discordSaturation ? Math.round(((HexToHSL("#" + primaryColor)[1] / 100) * (100 + PrimarySatDiffs[360])) * 10) / 10 : HexToHSL("#" + primaryColor)[1]}%) 90%);
+                }` : "")}
                 />
             </ModalContent>
             <ModalFooter>
@@ -182,7 +207,8 @@ export default function ({
                                 tertiaryColor,
                                 accentColor,
                                 tintedText,
-                                discordSaturation
+                                discordSaturation,
+                                mutedTextBrightness
                             );
                         } else {
                             gradientPresetIds.includes(getPreset()[preset].id) ?
@@ -199,7 +225,7 @@ export default function ({
                                 )[preset].preset(discordSaturation) as string);
                         }
                         const customColorway: Colorway = {
-                            name: (colorwayName || "Colorway") + (preset === "default" ? "" : ": Made for " + getPreset()[preset].name),
+                            name: (colorwayName || "Colorway"),
                             "dc-import": customColorwayCSS,
                             accent: "#" + accentColor,
                             primary: "#" + primaryColor,
@@ -214,9 +240,10 @@ export default function ({
                                 secondaryColor,
                                 tertiaryColor,
                                 accentColor
-                            )[preset].preset(discordSaturation) as { base: string; }).base : ""
+                            )[preset].preset(discordSaturation) as { base: string; }).base : "",
+                            preset: getPreset()[preset].id
                         };
-                        openModal(props => <SaveColorwayModal modalProps={props} colorway={customColorway} onFinish={() => {
+                        openModal(props => <SaveColorwayModal modalProps={props} colorways={[customColorway]} onFinish={() => {
                             modalProps.onClose();
                             loadUIProps!();
                         }} />);

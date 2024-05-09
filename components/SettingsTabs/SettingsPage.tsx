@@ -27,6 +27,7 @@ export default function () {
     const [customColorways, setCustomColorways] = useState<Colorway[]>([]);
     const [colorsButtonVisibility, setColorsButtonVisibility] = useState<boolean>(false);
     const [isButtonThin, setIsButtonThin] = useState<boolean>(false);
+    const [showLabelsInSelectorGridView, setShowLabelsInSelectorGridView] = useState<boolean>(false);
 
     useEffect(() => {
         (async function () {
@@ -34,12 +35,14 @@ export default function () {
                 customColorways,
                 colorwaySourceFiles,
                 showColorwaysButton,
-                useThinMenuButton
+                useThinMenuButton,
+                showLabelsInSelectorGridView
             ] = await DataStore.getMany([
                 "customColorways",
                 "colorwaySourceFiles",
                 "showColorwaysButton",
-                "useThinMenuButton"
+                "useThinMenuButton",
+                "showLabelsInSelectorGridView"
             ]);
             const responses: Response[] = await Promise.all(
                 colorwaySourceFiles.map((url: string) =>
@@ -55,6 +58,7 @@ export default function () {
             setCustomColorways(customColorways.map(source => source.colorways).flat(2));
             setColorsButtonVisibility(showColorwaysButton);
             setIsButtonThin(useThinMenuButton);
+            setShowLabelsInSelectorGridView(showLabelsInSelectorGridView);
         })();
     }, []);
 
@@ -88,6 +92,16 @@ export default function () {
                 note="Replaces the icon on the colorways launcher button with text, making it more compact."
             >
                 Use thin Quick Switch button
+            </Switch>
+            <Forms.FormTitle tag="h5">Selector</Forms.FormTitle>
+            <Switch
+                value={showLabelsInSelectorGridView}
+                onChange={(v: boolean) => {
+                    setShowLabelsInSelectorGridView(v);
+                    DataStore.set("showLabelsInSelectorGridView", v);
+                }}
+            >
+                Show labels in Grid View
             </Switch>
             <Flex flexDirection="column" style={{ gap: 0 }}>
                 <h1 style={{

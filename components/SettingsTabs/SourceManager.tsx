@@ -19,7 +19,7 @@ import { Colorway } from "userplugins/discordColorways/types";
 import { DownloadIcon, ImportIcon } from "../Icons";
 import Spinner from "../Spinner";
 
-function StoreNameModal({ modalProps, originalName, onFinish, conflicting }: { modalProps: ModalProps, originalName: string, onFinish: (newName: string) => Promise<void>, conflicting: boolean; }) {
+export function StoreNameModal({ modalProps, originalName, onFinish, conflicting }: { modalProps: ModalProps, originalName: string, onFinish: (newName: string) => Promise<void>, conflicting: boolean; }) {
     const [error, setError] = useState<string>();
     const [newStoreName, setNewStoreName] = useState<string>(originalName);
     return <ModalRoot {...modalProps}>
@@ -145,62 +145,61 @@ export default function () {
         </Flex>
         <ScrollerThin orientation="vertical" style={{ maxHeight: "250px" }} className="colorwaysSettings-sourceScroller">
             {colorwaySourceFiles?.map((colorwaySourceFile: string) => <div className={`${radioBarItem} ${radioBarItemFilled} colorwaysSettings-colorwaySource`}>
-                <Flex style={{ gap: "8px", alignItems: "center", width: "100%", height: "44px" }}>
-                    {knownColorwaySources.find(o => o.url === colorwaySourceFile) ? <div className="hoverRoll">
-                        <Text className="colorwaysSettings-colorwaySourceLabel hoverRoll_normal">
-                            {knownColorwaySources.find(o => o.url === colorwaySourceFile)!.name} {colorwaySourceFile === defaultColorwaySource && <div className="colorways-badge">DEFAULT</div>}
-                        </Text>
-                        <Text className="colorwaysSettings-colorwaySourceLabel hoverRoll_hovered">
-                            {colorwaySourceFile}
-                        </Text>
-                    </div>
-                        : <Text className="colorwaysSettings-colorwaySourceLabel">
-                            {colorwaySourceFile}
-                        </Text>}
-                    <Button
-                        innerClassName="colorwaysSettings-iconButtonInner"
-                        size={Button.Sizes.ICON}
-                        color={Button.Colors.PRIMARY}
-                        look={Button.Looks.OUTLINED}
-                        onClick={() => { Clipboard.copy(colorwaySourceFile); }}
-                    >
-                        <CopyIcon width={20} height={20} />
-                    </Button>
-                    {colorwaySourceFile !== defaultColorwaySource
-                        && <>
-                            <Button
-                                innerClassName="colorwaysSettings-iconButtonInner"
-                                size={Button.Sizes.ICON}
-                                color={Button.Colors.PRIMARY}
-                                look={Button.Looks.OUTLINED}
-                                onClick={async () => {
-                                    openModal(props => <StoreNameModal conflicting={false} modalProps={props} originalName={knownColorwaySources.find(o => o.url === colorwaySourceFile)!.name || ""} onFinish={async e => {
-                                        const modal = openModal(propss => <ModalRoot {...propss} className="colorwaysLoadingModal"><Spinner style={{ color: "#ffffff" }} /></ModalRoot>);
-                                        const res = await fetch(colorwaySourceFile);
-                                        const data = await res.json();
-                                        DataStore.set("customColorways", [...await DataStore.get("customColorways"), { name: e, colorways: data.colorways || [] }]);
-                                        setCustomColorwayStores(await DataStore.get("customColorways") as { name: string, colorways: Colorway[]; }[]);
-                                        closeModal(modal);
-                                    }} />);
-                                }}
-                            >
-                                <DownloadIcon width={20} height={20} />
-                            </Button>
-                            <Button
-                                innerClassName="colorwaysSettings-iconButtonInner"
-                                size={Button.Sizes.ICON}
-                                color={Button.Colors.PRIMARY}
-                                look={Button.Looks.OUTLINED}
-                                onClick={async () => {
-                                    var sourcesArr: string[] = [...await DataStore.get("colorwaySourceFiles")];
-                                    DataStore.set("colorwaySourceFiles", sourcesArr.filter(source => source !== colorwaySourceFile));
-                                    setColorwaySourceFiles(sourcesArr.filter(source => source !== colorwaySourceFile));
-                                }}
-                            >
-                                <DeleteIcon width={20} height={20} color="var(--status-danger)" />
-                            </Button>
-                        </>}
-                </Flex>
+
+                {knownColorwaySources.find(o => o.url === colorwaySourceFile) ? <div className="hoverRoll">
+                    <Text className="colorwaysSettings-colorwaySourceLabel hoverRoll_normal">
+                        {knownColorwaySources.find(o => o.url === colorwaySourceFile)!.name} {colorwaySourceFile === defaultColorwaySource && <div className="colorways-badge">Built-In</div>}
+                    </Text>
+                    <Text className="colorwaysSettings-colorwaySourceLabel hoverRoll_hovered">
+                        {colorwaySourceFile}
+                    </Text>
+                </div>
+                    : <Text className="colorwaysSettings-colorwaySourceLabel">
+                        {colorwaySourceFile}
+                    </Text>}
+                <Button
+                    innerClassName="colorwaysSettings-iconButtonInner"
+                    size={Button.Sizes.ICON}
+                    color={Button.Colors.PRIMARY}
+                    look={Button.Looks.OUTLINED}
+                    onClick={() => { Clipboard.copy(colorwaySourceFile); }}
+                >
+                    <CopyIcon width={20} height={20} />
+                </Button>
+                {colorwaySourceFile !== defaultColorwaySource
+                    && <>
+                        <Button
+                            innerClassName="colorwaysSettings-iconButtonInner"
+                            size={Button.Sizes.ICON}
+                            color={Button.Colors.PRIMARY}
+                            look={Button.Looks.OUTLINED}
+                            onClick={async () => {
+                                openModal(props => <StoreNameModal conflicting={false} modalProps={props} originalName={knownColorwaySources.find(o => o.url === colorwaySourceFile)!.name || ""} onFinish={async e => {
+                                    const modal = openModal(propss => <ModalRoot {...propss} className="colorwaysLoadingModal"><Spinner style={{ color: "#ffffff" }} /></ModalRoot>);
+                                    const res = await fetch(colorwaySourceFile);
+                                    const data = await res.json();
+                                    DataStore.set("customColorways", [...await DataStore.get("customColorways"), { name: e, colorways: data.colorways || [] }]);
+                                    setCustomColorwayStores(await DataStore.get("customColorways") as { name: string, colorways: Colorway[]; }[]);
+                                    closeModal(modal);
+                                }} />);
+                            }}
+                        >
+                            <DownloadIcon width={20} height={20} />
+                        </Button>
+                        <Button
+                            innerClassName="colorwaysSettings-iconButtonInner"
+                            size={Button.Sizes.ICON}
+                            color={Button.Colors.RED}
+                            look={Button.Looks.OUTLINED}
+                            onClick={async () => {
+                                var sourcesArr: string[] = [...await DataStore.get("colorwaySourceFiles")];
+                                DataStore.set("colorwaySourceFiles", sourcesArr.filter(source => source !== colorwaySourceFile));
+                                setColorwaySourceFiles(sourcesArr.filter(source => source !== colorwaySourceFile));
+                            }}
+                        >
+                            <DeleteIcon width={20} height={20} />
+                        </Button>
+                    </>}
             </div>
             )}
         </ScrollerThin>
@@ -269,47 +268,11 @@ export default function () {
                 size={Button.Sizes.SMALL}
                 color={Button.Colors.TRANSPARENT}
                 onClick={() => {
-                    openModal(props => {
-                        var colorwaySource = "";
-                        return <ModalRoot {...props} className="colorwaySourceModal">
-                            <ModalHeader>
-                                <Text variant="heading-lg/semibold" tag="h1">
-                                    Create offline source:
-                                </Text>
-                            </ModalHeader>
-                            <TextInput
-                                placeholder="Enter a valid name..."
-                                onChange={e => colorwaySource = e}
-                                style={{ margin: "8px", width: "calc(100% - 16px)" }}
-                            />
-                            <ModalFooter>
-                                <Button
-                                    style={{ marginLeft: 8 }}
-                                    color={Button.Colors.BRAND}
-                                    size={Button.Sizes.MEDIUM}
-                                    look={Button.Looks.FILLED}
-                                    onClick={async () => {
-                                        var sourcesArr: { name: string, colorways: Colorway[]; }[] = [...await DataStore.get("customColorways")];
-                                        if (!sourcesArr.map(source => source.name).includes(colorwaySource)) sourcesArr.push({ name: colorwaySource, colorways: [] });
-                                        DataStore.set("customColorways", sourcesArr);
-                                        setCustomColorwayStores(sourcesArr);
-                                        props.onClose();
-                                    }}
-                                >
-                                    Finish
-                                </Button>
-                                <Button
-                                    style={{ marginLeft: 8 }}
-                                    color={Button.Colors.PRIMARY}
-                                    size={Button.Sizes.MEDIUM}
-                                    look={Button.Looks.FILLED}
-                                    onClick={() => props.onClose()}
-                                >
-                                    Cancel
-                                </Button>
-                            </ModalFooter>
-                        </ModalRoot>;
-                    });
+                    openModal(props => <StoreNameModal conflicting={false} modalProps={props} originalName="" onFinish={async e => {
+                        await DataStore.set("customColorways", [...await DataStore.get("customColorways"), { name: e, colorways: [] }]);
+                        setCustomColorwayStores(await DataStore.get("customColorways") as { name: string, colorways: Colorway[]; }[]);
+                        props.onClose();
+                    }} />);
                 }}>
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -335,46 +298,45 @@ export default function () {
                 </Flex>
             </div> : <></>}
             {customColorwayStores.map(({ name: customColorwaySourceName, colorways: offlineStoreColorways }) => <div className={`${radioBarItem} ${radioBarItemFilled} colorwaysSettings-colorwaySource`}>
-                <Flex style={{ gap: "8px", alignItems: "center", width: "100%", height: "44px" }}>
-                    <Text className="colorwaysSettings-colorwaySourceLabel">
-                        {customColorwaySourceName}
-                    </Text>
-                    <Button
-                        innerClassName="colorwaysSettings-iconButtonInner"
-                        size={Button.Sizes.ICON}
-                        color={Button.Colors.PRIMARY}
-                        look={Button.Looks.OUTLINED}
-                        onClick={async () => {
-                            console.log(offlineStoreColorways);
-                            if (IS_DISCORD_DESKTOP) {
-                                DiscordNative.fileManager.saveWithDialog(JSON.stringify({ "name": customColorwaySourceName, "colorways": [...offlineStoreColorways] }), `${customColorwaySourceName.replaceAll(" ", "-").toLowerCase()}.colorways.json`);
-                            } else {
-                                saveFile(new File([JSON.stringify({ "name": customColorwaySourceName, "colorways": [...offlineStoreColorways] })], `${customColorwaySourceName.replaceAll(" ", "-").toLowerCase()}.colorways.json`, { type: "application/json" }));
+
+                <Text className="colorwaysSettings-colorwaySourceLabel">
+                    {customColorwaySourceName}
+                </Text>
+                <Button
+                    innerClassName="colorwaysSettings-iconButtonInner"
+                    size={Button.Sizes.ICON}
+                    color={Button.Colors.PRIMARY}
+                    look={Button.Looks.OUTLINED}
+                    onClick={async () => {
+                        console.log(offlineStoreColorways);
+                        if (IS_DISCORD_DESKTOP) {
+                            DiscordNative.fileManager.saveWithDialog(JSON.stringify({ "name": customColorwaySourceName, "colorways": [...offlineStoreColorways] }), `${customColorwaySourceName.replaceAll(" ", "-").toLowerCase()}.colorways.json`);
+                        } else {
+                            saveFile(new File([JSON.stringify({ "name": customColorwaySourceName, "colorways": [...offlineStoreColorways] })], `${customColorwaySourceName.replaceAll(" ", "-").toLowerCase()}.colorways.json`, { type: "application/json" }));
+                        }
+                    }}
+                >
+                    <DownloadIcon width={20} height={20} />
+                </Button>
+                <Button
+                    innerClassName="colorwaysSettings-iconButtonInner"
+                    size={Button.Sizes.ICON}
+                    color={Button.Colors.RED}
+                    look={Button.Looks.OUTLINED}
+                    onClick={async () => {
+                        var sourcesArr: { name: string, colorways: Colorway[]; }[] = [];
+                        const customColorwaySources = await DataStore.get("customColorways");
+                        customColorwaySources.map((source: { name: string, colorways: Colorway[]; }) => {
+                            if (source.name !== customColorwaySourceName) {
+                                sourcesArr.push(source);
                             }
-                        }}
-                    >
-                        <DownloadIcon width={20} height={20} />
-                    </Button>
-                    <Button
-                        innerClassName="colorwaysSettings-iconButtonInner"
-                        size={Button.Sizes.ICON}
-                        color={Button.Colors.PRIMARY}
-                        look={Button.Looks.OUTLINED}
-                        onClick={async () => {
-                            var sourcesArr: { name: string, colorways: Colorway[]; }[] = [];
-                            const customColorwaySources = await DataStore.get("customColorways");
-                            customColorwaySources.map((source: { name: string, colorways: Colorway[]; }) => {
-                                if (source.name !== customColorwaySourceName) {
-                                    sourcesArr.push(source);
-                                }
-                            });
-                            DataStore.set("customColorways", sourcesArr);
-                            setCustomColorwayStores(sourcesArr);
-                        }}
-                    >
-                        <DeleteIcon width={20} height={20} color="var(--status-danger)" />
-                    </Button>
-                </Flex>
+                        });
+                        DataStore.set("customColorways", sourcesArr);
+                        setCustomColorwayStores(sourcesArr);
+                    }}
+                >
+                    <DeleteIcon width={20} height={20} />
+                </Button>
             </div>
             )}
         </Flex>

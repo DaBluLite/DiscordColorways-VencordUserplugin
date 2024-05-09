@@ -34,7 +34,7 @@ import SettingsPage from "./components/SettingsTabs/SettingsPage";
 import SourceManager from "./components/SettingsTabs/SourceManager";
 import Spinner from "./components/Spinner";
 import { defaultColorwaySource } from "./constants";
-import { getAutoPresets } from "./css";
+import { generateCss, getAutoPresets } from "./css";
 import style from "./style.css?managed";
 import { ColorPickerProps, ColorwayObject } from "./types";
 import { colorToHex, hexToString } from "./utils";
@@ -53,7 +53,9 @@ export let ColorPicker: React.FunctionComponent<ColorPickerProps> = () => {
         useThinMenuButton,
         onDemandWaysDiscordSaturation,
         onDemandWaysOsAccentColor,
-        activeColorwayObject
+        activeColorwayObject,
+        selectorViewMode,
+        showLabelsInSelectorGridView
     ] = await DataStore.getMany([
         "customColorways",
         "colorwaySourceFiles",
@@ -63,22 +65,26 @@ export let ColorPicker: React.FunctionComponent<ColorPickerProps> = () => {
         "useThinMenuButton",
         "onDemandWaysDiscordSaturation",
         "onDemandWaysOsAccentColor",
-        "activeColorwayObject"
+        "activeColorwayObject",
+        "selectorViewMode",
+        "showLabelsInSelectorGridView"
     ]);
 
     const defaults = [
-        { name: "colorwaySourceFiles", checkedValue: colorwaySourceFiles, defaults: [defaultColorwaySource] },
-        { name: "showColorwaysButton", checkedValue: showColorwaysButton, defaults: false },
-        { name: "onDemandWays", checkedValue: onDemandWays, defaults: false },
-        { name: "onDemandWaysTintedText", checkedValue: onDemandWaysTintedText, defaults: true },
-        { name: "useThinMenuButton", checkedValue: useThinMenuButton, defaults: false },
-        { name: "onDemandWaysDiscordSaturation", checkedValue: onDemandWaysDiscordSaturation, defaults: false },
-        { name: "onDemandWaysOsAccentColor", checkedValue: onDemandWaysOsAccentColor, defaults: false },
-        { name: "activeColorwayObject", checkedValue: activeColorwayObject, defaults: { id: null, css: null, sourceType: null, source: null } }
+        { name: "colorwaySourceFiles", value: colorwaySourceFiles, default: [defaultColorwaySource] },
+        { name: "showColorwaysButton", value: showColorwaysButton, default: false },
+        { name: "onDemandWays", value: onDemandWays, default: false },
+        { name: "onDemandWaysTintedText", value: onDemandWaysTintedText, default: true },
+        { name: "useThinMenuButton", value: useThinMenuButton, default: false },
+        { name: "onDemandWaysDiscordSaturation", value: onDemandWaysDiscordSaturation, default: false },
+        { name: "onDemandWaysOsAccentColor", value: onDemandWaysOsAccentColor, default: false },
+        { name: "activeColorwayObject", value: activeColorwayObject, default: { id: null, css: null, sourceType: null, source: null } },
+        { name: "selectorViewMode", value: selectorViewMode, default: "grid" },
+        { name: "showLabelsInSelectorGridView", value: showLabelsInSelectorGridView, default: false }
     ];
 
-    defaults.forEach(({ name, checkedValue, defaults }) => {
-        if (!checkedValue) DataStore.set(name, defaults);
+    defaults.forEach(({ name, value, default: def }) => {
+        if (!value) DataStore.set(name, def);
     });
 
     if (customColorways) {
@@ -106,8 +112,8 @@ export const ColorwayCSS = {
 };
 
 export const versionData = {
-    pluginVersion: "5.7.0a2",
-    creatorVersion: "1.19.6",
+    pluginVersion: "5.7.0a3",
+    creatorVersion: "1.20",
 };
 
 export default definePlugin({
@@ -258,23 +264,21 @@ export default definePlugin({
             if (String(props.message.content).match(/colorway:[0-9a-f]{0,100}/)) {
                 return <Flex flexDirection="column">
                     {String(props.message.content).match(/colorway:[0-9a-f]{0,100}/g)?.map((colorID: string) => {
-                        colorID = colorID.split("colorway:")[1];
+                        colorID = hexToString(colorID.split("colorway:")[1]);
                         return <div className="colorwayMessage">
                             <div className="discordColorwayPreviewColorContainer" style={{ width: "56px", height: "56px", marginRight: "16px" }}>
                                 {(() => {
                                     if (colorID) {
-                                        if (!colorID) {
-                                            throw new Error("Please enter a Colorway ID");
-                                        } else if (!hexToString(colorID).includes(",")) {
+                                        if (!colorID.includes(",")) {
                                             throw new Error("Invalid Colorway ID");
                                         } else {
-                                            return hexToString(colorID).split(/,#/).map((color: string) => <div className="discordColorwayPreviewColor" style={{ backgroundColor: `#${colorToHex(color)}` }} />);
+                                            return colorID.split("|").filter(string => string.includes(",#"))[0].split(/,#/).map((color: string) => <div className="discordColorwayPreviewColor" style={{ backgroundColor: `#${colorToHex(color)}` }} />);
                                         }
                                     } else return null;
                                 })()}
                             </div>
                             <div className="colorwayMessage-contents">
-                                <Forms.FormTitle>Found Colorway ID</Forms.FormTitle>
+                                <Forms.FormTitle>Colorway{/n:([A-Za-z0-9]+( [A-Za-z0-9]+)+)/i.exec(colorID) ? `: ${/n:([A-Za-z0-9]+( [A-Za-z0-9]+)+)/i.exec(colorID)![1]}` : ""}</Forms.FormTitle>
                                 <Flex>
                                     <Button
                                         onClick={() => openModal(modalProps => <CreatorModal
@@ -301,6 +305,37 @@ export default definePlugin({
                                         look={Button.Looks.FILLED}
                                     >
                                         Copy Colorway ID
+                                    </Button>
+                                    <Button
+                                        onClick={() => {
+                                            if (!hexToString(colorID).includes(",")) {
+                                                throw new Error("Invalid Colorway ID");
+                                            } else {
+                                                DataStore.set("activeColorwayObject", {
+                                                    id: "Temporary Colorway", css: generateCss(
+                                                        colorToHex(hexToString(colorID).split(/,#/)[1]),
+                                                        colorToHex(hexToString(colorID).split(/,#/)[2]),
+                                                        colorToHex(hexToString(colorID).split(/,#/)[3]),
+                                                        colorToHex(hexToString(colorID).split(/,#/)[0]),
+                                                        true,
+                                                        true
+                                                    ), sourceType: "temporary", source: null
+                                                });
+                                                ColorwayCSS.set(generateCss(
+                                                    colorToHex(hexToString(colorID).split(/,#/)[1]),
+                                                    colorToHex(hexToString(colorID).split(/,#/)[2]),
+                                                    colorToHex(hexToString(colorID).split(/,#/)[3]),
+                                                    colorToHex(hexToString(colorID).split(/,#/)[0]),
+                                                    true,
+                                                    true
+                                                ));
+                                            }
+                                        }}
+                                        size={Button.Sizes.SMALL}
+                                        color={Button.Colors.PRIMARY}
+                                        look={Button.Looks.FILLED}
+                                    >
+                                        Apply temporarily
                                     </Button>
                                 </Flex>
                             </div>

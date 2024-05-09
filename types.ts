@@ -17,9 +17,10 @@ export interface Colorway {
     authorID: string,
     colors?: string[],
     isGradient?: boolean,
-    sourceUrl?: string,
-    sourceName?: string,
-    linearGradient?: string;
+    sourceType?: "online" | "offline" | "temporary" | null,
+    source?: string,
+    linearGradient?: string,
+    preset?: string;
 }
 
 export interface ColorPickerProps {
@@ -33,12 +34,19 @@ export interface ColorPickerProps {
 export interface ColorwayObject {
     id: string | null,
     css: string | null,
-    sourceType: "online" | "offline" | null,
-    source: string | null;
+    sourceType: "online" | "offline" | "temporary" | null,
+    source: string | null | undefined;
 }
 
 export interface SourceObject {
-    type: "online" | "offline",
+    type: "online" | "offline" | "temporary",
     source: string,
     colorways: Colorway[];
+}
+
+export enum SortOptions {
+    NAME_AZ = 1,
+    NAME_ZA = 2,
+    PRESET_AZ = 3,
+    PRESET_ZA = 4
 }

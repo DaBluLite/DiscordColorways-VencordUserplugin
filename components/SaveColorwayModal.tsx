@@ -11,8 +11,9 @@ import { findByProps } from "@webpack";
 import { Button, Text, TextInput, useEffect, useState } from "@webpack/common";
 
 import { Colorway } from "../types";
+import { StoreNameModal } from "./SettingsTabs/SourceManager";
 
-export default function ({ modalProps, colorway, onFinish }: { modalProps: ModalProps, colorway: Colorway, onFinish?: () => void; }) {
+export default function ({ modalProps, colorways, onFinish }: { modalProps: ModalProps, colorways: Colorway[], onFinish?: () => void; }) {
     const [offlineColorwayStores, setOfflineColorwayStores] = useState<{ name: string, colorways: Colorway[], id?: string; }[]>([]);
     const [storename, setStorename] = useState<string>();
     const [noStoreError, setNoStoreError] = useState<boolean>(false);
@@ -49,47 +50,10 @@ export default function ({ modalProps, colorway, onFinish }: { modalProps: Modal
                     className={`${radioBar} ${radioPositionLeft}`}
                     style={{ padding: "10px" }}
                     onClick={() => {
-                        openModal(props => {
-                            var colorwaySource = "";
-                            return <ModalRoot {...props} className="colorwaySourceModal">
-                                <ModalHeader>
-                                    <Text variant="heading-lg/semibold" tag="h1">
-                                        Create offline source:
-                                    </Text>
-                                </ModalHeader>
-                                <TextInput
-                                    placeholder="Enter a valid name..."
-                                    onChange={e => colorwaySource = e}
-                                    style={{ margin: "8px", width: "calc(100% - 16px)" }}
-                                />
-                                <ModalFooter>
-                                    <Button
-                                        style={{ marginLeft: 8 }}
-                                        color={Button.Colors.BRAND}
-                                        size={Button.Sizes.MEDIUM}
-                                        look={Button.Looks.FILLED}
-                                        onClick={async () => {
-                                            var sourcesArr: { name: string, colorways: Colorway[]; }[] = [...await DataStore.get("customColorways")];
-                                            if (!sourcesArr.map(source => source.name).includes(colorwaySource)) sourcesArr.push({ name: colorwaySource, colorways: [] });
-                                            DataStore.set("customColorways", sourcesArr);
-                                            setOfflineColorwayStores(sourcesArr);
-                                            props.onClose();
-                                        }}
-                                    >
-                                        Finish
-                                    </Button>
-                                    <Button
-                                        style={{ marginLeft: 8 }}
-                                        color={Button.Colors.PRIMARY}
-                                        size={Button.Sizes.MEDIUM}
-                                        look={Button.Looks.FILLED}
-                                        onClick={() => props.onClose()}
-                                    >
-                                        Cancel
-                                    </Button>
-                                </ModalFooter>
-                            </ModalRoot>;
-                        });
+                        openModal(props => <StoreNameModal modalProps={props} conflicting={false} originalName="" onFinish={async e => {
+                            await DataStore.set("customColorways", [...await DataStore.get("customColorways"), { name: e, colorways: [] }]);
+                            setOfflineColorwayStores(await DataStore.get("customColorways") as { name: string, colorways: Colorway[]; }[]);
+                        }} />);
                     }}>
                     <PlusIcon width={24} height={24} />
                     <Text variant="eyebrow" tag="h5">Create new store...</Text>
@@ -108,108 +72,120 @@ export default function ({ modalProps, colorway, onFinish }: { modalProps: Modal
                     } else {
                         const oldStores: { name: string, colorways: Colorway[], id?: string; }[] | undefined = await DataStore.get("customColorways");
                         const storeToModify: { name: string, colorways: Colorway[], id?: string; } | undefined = (await DataStore.get("customColorways") as { name: string, colorways: Colorway[], id?: string; }[]).filter(source => source.name === storename)[0];
-                        if (storeToModify.colorways.map(colorway => colorway.name).includes(colorway.name)) {
-                            openModal(props => <ModalRoot {...props}>
-                                <ModalHeader separator={false}>
-                                    <Text variant="heading-lg/semibold" tag="h1">Duplicate Colorway</Text>
-                                </ModalHeader>
-                                <ModalContent>
-                                    <Text>A colorway with the same name was found in this store, what do you want to do?</Text>
-                                </ModalContent>
-                                <ModalFooter>
-                                    <Button
-                                        style={{ marginLeft: 8 }}
-                                        color={Button.Colors.BRAND}
-                                        size={Button.Sizes.MEDIUM}
-                                        look={Button.Looks.FILLED}
-                                        onClick={() => {
-                                            const newStore = { name: storeToModify.name, colorways: [...storeToModify.colorways.filter(colorwayy => colorwayy.name !== colorway.name), colorway] };
-                                            DataStore.set("customColorways", [...oldStores!.filter(source => source.name !== storename), newStore]);
-                                            props.onClose();
-                                            modalProps.onClose();
-                                            onFinish!();
-                                        }}
-                                    >
-                                        Override
-                                    </Button>
-                                    <Button
-                                        style={{ marginLeft: 8 }}
-                                        color={Button.Colors.BRAND}
-                                        size={Button.Sizes.MEDIUM}
-                                        look={Button.Looks.FILLED}
-                                        onClick={() => {
-                                            function NewColorwayNameModal({ modalProps, onSelected }: { modalProps: ModalProps, onSelected: (e: string) => void; }) {
-                                                const [errorMsg, setErrorMsg] = useState<string>();
-                                                const [newColorwayName, setNewColorwayName] = useState("");
-                                                return <ModalRoot {...modalProps}>
-                                                    <ModalHeader separator={false}>
-                                                        <Text variant="heading-lg/semibold" tag="h1">Select new name</Text>
-                                                    </ModalHeader>
-                                                    <ModalContent>
-                                                        <TextInput error={errorMsg} value={newColorwayName} onChange={e => setNewColorwayName(e)} placeholder="Enter valid colorway name" />
-                                                    </ModalContent>
-                                                    <ModalFooter>
-                                                        <Button
-                                                            style={{ marginLeft: 8 }}
-                                                            color={Button.Colors.PRIMARY}
-                                                            size={Button.Sizes.MEDIUM}
-                                                            look={Button.Looks.OUTLINED}
-                                                            onClick={() => {
-                                                                setErrorMsg("");
-                                                                if (storeToModify!.colorways.map(colorway => colorway.name).includes(newColorwayName)) {
-                                                                    setErrorMsg("Error: Name already exists");
-                                                                } else {
-                                                                    onSelected(newColorwayName);
-                                                                    modalProps.onClose();
-                                                                }
-                                                            }}
-                                                        >
-                                                            Finish
-                                                        </Button>
-                                                        <Button
-                                                            style={{ marginLeft: 8 }}
-                                                            color={Button.Colors.PRIMARY}
-                                                            size={Button.Sizes.MEDIUM}
-                                                            look={Button.Looks.OUTLINED}
-                                                            onClick={() => {
-                                                                modalProps.onClose();
-                                                            }}
-                                                        >
-                                                            Cancel
-                                                        </Button>
-                                                    </ModalFooter>
-                                                </ModalRoot>;
-                                            }
-                                            openModal(propss => <NewColorwayNameModal modalProps={propss} onSelected={e => {
-                                                const newStore = { name: storeToModify.name, colorways: [...storeToModify.colorways, { ...colorway, name: e }] };
+                        colorways.map((colorway, i) => {
+                            if (storeToModify.colorways.map(colorway => colorway.name).includes(colorway.name)) {
+                                openModal(props => <ModalRoot {...props}>
+                                    <ModalHeader separator={false}>
+                                        <Text variant="heading-lg/semibold" tag="h1">Duplicate Colorway</Text>
+                                    </ModalHeader>
+                                    <ModalContent>
+                                        <Text>A colorway with the same name was found in this store, what do you want to do?</Text>
+                                    </ModalContent>
+                                    <ModalFooter>
+                                        <Button
+                                            style={{ marginLeft: 8 }}
+                                            color={Button.Colors.BRAND}
+                                            size={Button.Sizes.MEDIUM}
+                                            look={Button.Looks.FILLED}
+                                            onClick={() => {
+                                                const newStore = { name: storeToModify.name, colorways: [...storeToModify.colorways.filter(colorwayy => colorwayy.name !== colorway.name), colorway] };
                                                 DataStore.set("customColorways", [...oldStores!.filter(source => source.name !== storename), newStore]);
                                                 props.onClose();
-                                                modalProps.onClose();
-                                                onFinish!();
-                                            }} />);
-                                        }}
-                                    >
-                                        Rename
-                                    </Button>
-                                    <Button
-                                        style={{ marginLeft: 8 }}
-                                        color={Button.Colors.PRIMARY}
-                                        size={Button.Sizes.MEDIUM}
-                                        look={Button.Looks.OUTLINED}
-                                        onClick={() => {
-                                            props.onClose();
-                                        }}
-                                    >
-                                        Select different store
-                                    </Button>
-                                </ModalFooter>
-                            </ModalRoot>);
-                        } else {
-                            const newStore = { name: storeToModify.name, colorways: [...storeToModify.colorways, colorway] };
-                            DataStore.set("customColorways", [...oldStores!.filter(source => source.name !== storename), newStore]);
-                            modalProps.onClose();
-                            onFinish!();
-                        }
+                                                if (i + 1 === colorways.length) {
+                                                    modalProps.onClose();
+                                                    onFinish!();
+                                                }
+                                            }}
+                                        >
+                                            Override
+                                        </Button>
+                                        <Button
+                                            style={{ marginLeft: 8 }}
+                                            color={Button.Colors.BRAND}
+                                            size={Button.Sizes.MEDIUM}
+                                            look={Button.Looks.FILLED}
+                                            onClick={() => {
+                                                function NewColorwayNameModal({ modalProps, onSelected }: { modalProps: ModalProps, onSelected: (e: string) => void; }) {
+                                                    const [errorMsg, setErrorMsg] = useState<string>();
+                                                    const [newColorwayName, setNewColorwayName] = useState("");
+                                                    return <ModalRoot {...modalProps}>
+                                                        <ModalHeader separator={false}>
+                                                            <Text variant="heading-lg/semibold" tag="h1">Select new name</Text>
+                                                        </ModalHeader>
+                                                        <ModalContent>
+                                                            <TextInput error={errorMsg} value={newColorwayName} onChange={e => setNewColorwayName(e)} placeholder="Enter valid colorway name" />
+                                                        </ModalContent>
+                                                        <ModalFooter>
+                                                            <Button
+                                                                style={{ marginLeft: 8 }}
+                                                                color={Button.Colors.PRIMARY}
+                                                                size={Button.Sizes.MEDIUM}
+                                                                look={Button.Looks.OUTLINED}
+                                                                onClick={() => {
+                                                                    setErrorMsg("");
+                                                                    if (storeToModify!.colorways.map(colorway => colorway.name).includes(newColorwayName)) {
+                                                                        setErrorMsg("Error: Name already exists");
+                                                                    } else {
+                                                                        onSelected(newColorwayName);
+                                                                        if (i + 1 === colorways.length) {
+                                                                            modalProps.onClose();
+                                                                        }
+                                                                    }
+                                                                }}
+                                                            >
+                                                                Finish
+                                                            </Button>
+                                                            <Button
+                                                                style={{ marginLeft: 8 }}
+                                                                color={Button.Colors.PRIMARY}
+                                                                size={Button.Sizes.MEDIUM}
+                                                                look={Button.Looks.OUTLINED}
+                                                                onClick={() => {
+                                                                    if (i + 1 === colorways.length) {
+                                                                        modalProps.onClose();
+                                                                    }
+                                                                }}
+                                                            >
+                                                                Cancel
+                                                            </Button>
+                                                        </ModalFooter>
+                                                    </ModalRoot>;
+                                                }
+                                                openModal(propss => <NewColorwayNameModal modalProps={propss} onSelected={e => {
+                                                    const newStore = { name: storeToModify.name, colorways: [...storeToModify.colorways, { ...colorway, name: e }] };
+                                                    DataStore.set("customColorways", [...oldStores!.filter(source => source.name !== storename), newStore]);
+                                                    props.onClose();
+                                                    if (i + 1 === colorways.length) {
+                                                        modalProps.onClose();
+                                                        onFinish!();
+                                                    }
+                                                }} />);
+                                            }}
+                                        >
+                                            Rename
+                                        </Button>
+                                        <Button
+                                            style={{ marginLeft: 8 }}
+                                            color={Button.Colors.PRIMARY}
+                                            size={Button.Sizes.MEDIUM}
+                                            look={Button.Looks.OUTLINED}
+                                            onClick={() => {
+                                                props.onClose();
+                                            }}
+                                        >
+                                            Select different store
+                                        </Button>
+                                    </ModalFooter>
+                                </ModalRoot>);
+                            } else {
+                                const newStore = { name: storeToModify.name, colorways: [...storeToModify.colorways, colorway] };
+                                DataStore.set("customColorways", [...oldStores!.filter(source => source.name !== storename), newStore]);
+                                if (i + 1 === colorways.length) {
+                                    modalProps.onClose();
+                                    onFinish!();
+                                }
+                            }
+                        });
                     }
                 }}
             >

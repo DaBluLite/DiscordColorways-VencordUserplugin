@@ -23,15 +23,12 @@
 }
 
 .discordColorway {
-    height: 60px;
-    width: 60px;
+    width: 56px;
     cursor: pointer;
     display: flex;
-    flex-flow: wrap;
-    flex-direction: row;
+    flex-direction: column;
     position: relative;
     align-items: center;
-    justify-content: center;
     transition: 170ms ease;
 }
 
@@ -72,7 +69,7 @@
 .ColorwaySelectorWrapper {
     position: relative;
     display: flex;
-    gap: 16px 23px;
+    gap: 16px 28px;
     width: 100%;
     flex-wrap: wrap;
     padding: 2px;
@@ -91,11 +88,10 @@
 .colorwaySelectorModalContent {
     display: flex;
     flex-direction: column;
-    gap: 8px;
     width: 100%;
     max-width: 596px;
     overflow: visible !important;
-    padding: 0 16px 16px !important;
+    padding: 0 16px !important;
 }
 
 .ColorwaySelectorBtnContainer {
@@ -226,6 +222,8 @@
     height: 46px;
     display: flex;
     flex-direction: row;
+    align-items: center;
+    justify-content: center;
     margin: 12px 0;
     gap: 8px;
 }
@@ -233,10 +231,15 @@
 .colorwayInfo-colorSwatch {
     display: flex;
     width: 100%;
-    height: 46px;
-    border-radius: 4px;
+    height: 38px;
+    border-radius: 3px;
     cursor: pointer;
     position: relative;
+    transition: .15s;
+}
+
+.colorwayInfo-colorSwatch:hover {
+    filter: brightness(.8);
 }
 
 .colorwayInfo-row {
@@ -909,8 +912,20 @@
 
 .colorwaysSettings-colorwaySource {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     justify-content: space-between;
+    padding: 0 8px;
+    gap: 5px;
+    border-radius: 4px;
+    box-sizing: border-box;
+    min-height: 44px;
+    align-items: center;
+}
+
+.discordColorway-listItem {
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
     padding: 0 8px;
     gap: 5px;
     border-radius: 4px;
@@ -1186,11 +1201,6 @@
     min-height: unset;
 }
 
-.colorwaySelectorModal-header {
-    box-shadow: none !important;
-    padding-bottom: 8px;
-}
-
 .colorwaySelector-sourceSelect {
     width: fit-content !important;
 }
@@ -1247,7 +1257,8 @@
     margin-left: 8px;
 }
 
-.colorwaysLoadingModal {
+.colorwaysLoadingModal,
+.colorwayInfo-cssModal {
     width: fit-content;
     height: fit-content;
     min-width: unset;
@@ -1255,4 +1266,98 @@
     background: none;
     box-shadow: none !important;
     border: none;
+}
+
+.ColorwaySelectorWrapper-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    flex-wrap: nowrap;
+    padding-bottom: 0;
+}
+
+.discordColorway-listItem .discordColorwayPreviewColorContainer {
+    width: 30px;
+    height: 30px;
+}
+
+.colorwayLabel.labelInGrid {
+    max-height: 2rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 4px;
+    text-align: center;
+}
+
+.discordColorway-listItem .colorwayInfoIconContainer {
+    height: 28px;
+    width: 28px;
+    border-radius: 3px;
+    position: static;
+    opacity: 1;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    background: transparent;
+    border: 1px solid var(--button-outline-primary-border);
+    color: var(--button-outline-primary-text);
+    transition: .15s;
+}
+
+.discordColorway-listItem .colorwayInfoIconContainer:hover {
+    background-color: var(--button-outline-primary-background-hover);
+    border-color: var(--button-outline-primary-border-hover);
+    color: var(--button-outline-primary-text-hover);
+}
+
+.colorwayLabel:not(.labelInGrid) {
+    margin-right: auto;
+    margin-top: 0 !important;
+    margin-left: .5rem;
+}
+
+.colorwaySelectionCircle {
+    position: absolute;
+    width: 56px;
+    height: 56px;
+    top: 0;
+    left: 0;
+}
+
+.ColorwaySelectorWrapper-grid {
+    margin-bottom: 16px;
+}
+
+.colorwaySelector-sorter {
+    height: 50px;
+    width: 100%;
+    box-shadow: var(--elevation-low);
+    margin-bottom: 8px;
+    display: flex;
+}
+
+.colorwaySelector-sorter_selectedSpacer {
+    width: 80px;
+    height: 50px;
+}
+
+.colorwaySelector-sorter_text {
+    line-height: 50px;
+    margin: 0;
+}
+
+.colorwaySelector-sorter_name {
+    margin-right: auto;
+    cursor: pointer;
+}
+
+.colorwayPresetLabel {
+    margin-right: 1rem;
+}
+
+.colorwayPreview-channel {
+    margin: 10px;
+    width: calc(100% - 20px);
+    height: 8px;
+    border-radius: 16px;
 }
