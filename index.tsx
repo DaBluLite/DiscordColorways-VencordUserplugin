@@ -98,7 +98,7 @@ export let ColorPicker: React.FunctionComponent<ColorPickerProps> = () => {
 
     if (colorwaySourceFiles) {
         if (typeof colorwaySourceFiles[0] === "string") {
-            const newSourceList: { name: string, url: string; }[] = [...colorwaySourceFiles.map((sourceURL: string, i: number) => ({ name: sourceURL === defaultColorwaySource ? "Project Colorway" : `Source #${i}` }))];
+            const newSourceList: { name: string, url: string; }[] = colorwaySourceFiles.map((sourceURL: string, i: number) => ({ name: sourceURL === defaultColorwaySource ? "Project Colorway" : `Source #${i}`, url: sourceURL }));
             DataStore.set("colorwaySourceFiles", newSourceList);
         }
     } else {
