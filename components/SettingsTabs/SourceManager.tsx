@@ -13,14 +13,14 @@ import { closeModal, ModalContent, ModalFooter, ModalHeader, ModalProps, ModalRo
 import { chooseFile, saveFile } from "@utils/web";
 import { findByProps } from "@webpack";
 import { Button, Clipboard, Forms, ScrollerThin, Text, TextInput, useEffect, useState } from "@webpack/common";
-import { defaultColorwaySource, knownColorwaySources } from "userplugins/discordColorways/constants";
+import { defaultColorwaySource } from "userplugins/discordColorways/constants";
 import { Colorway } from "userplugins/discordColorways/types";
 
 import { DownloadIcon, ImportIcon } from "../Icons";
 import Spinner from "../Spinner";
 
 export function StoreNameModal({ modalProps, originalName, onFinish, conflicting }: { modalProps: ModalProps, originalName: string, onFinish: (newName: string) => Promise<void>, conflicting: boolean; }) {
-    const [error, setError] = useState<string>();
+    const [error, setError] = useState<string>("");
     const [newStoreName, setNewStoreName] = useState<string>(originalName);
     return <ModalRoot {...modalProps}>
         <ModalHeader separator={false}>
@@ -28,7 +28,8 @@ export function StoreNameModal({ modalProps, originalName, onFinish, conflicting
         </ModalHeader>
         <ModalContent>
             {conflicting ? <Text>A store with the same name already exists. Please give a different name to the imported store:</Text> : <></>}
-            <TextInput error={error} value={newStoreName} onChange={e => setNewStoreName(e)} style={{ margin: "16px 0" }} />
+            <Forms.FormTitle>Name:</Forms.FormTitle>
+            <TextInput error={error} value={newStoreName} onChange={e => setNewStoreName(e)} style={{ marginBottom: "16px" }} />
         </ModalContent>
         <ModalFooter>
             <Button
@@ -60,8 +61,76 @@ export function StoreNameModal({ modalProps, originalName, onFinish, conflicting
     </ModalRoot>;
 }
 
+function AddOnlineStoreModal({ modalProps, onFinish }: { modalProps: ModalProps, onFinish: (name: string, url: string) => void; }) {
+    const [colorwaySourceName, setColorwaySourceName] = useState<string>("");
+    const [colorwaySourceURL, setColorwaySourceURL] = useState<string>("");
+    const [nameError, setNameError] = useState<string>("");
+    const [URLError, setURLError] = useState<string>("");
+    return <ModalRoot {...modalProps}>
+        <ModalHeader separator={false}>
+            <Text variant="heading-lg/semibold" tag="h1">
+                Add a source:
+            </Text>
+        </ModalHeader>
+        <ModalContent>
+            <Forms.FormTitle>Name:</Forms.FormTitle>
+            <TextInput
+                placeholder="Enter a valid Name..."
+                onChange={setColorwaySourceName}
+                value={colorwaySourceName}
+                error={nameError}
+            />
+            <Forms.FormTitle style={{ marginTop: "8px" }}>URL:</Forms.FormTitle>
+            <TextInput
+                placeholder="Enter a valid URL..."
+                onChange={setColorwaySourceURL}
+                value={colorwaySourceURL}
+                error={URLError}
+                style={{ marginBottom: "16px" }}
+            />
+        </ModalContent>
+        <ModalFooter>
+            <Button
+                style={{ marginLeft: 8 }}
+                color={Button.Colors.BRAND}
+                size={Button.Sizes.MEDIUM}
+                look={Button.Looks.FILLED}
+                onClick={async () => {
+                    const sourcesArr: { name: string, url: string; }[] = (await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[]);
+                    if (!colorwaySourceName) {
+                        setNameError("Error: Please enter a valid name");
+                    }
+                    else if (!colorwaySourceURL) {
+                        setURLError("Error: Please enter a valid URL");
+                    }
+                    else if (sourcesArr.map(s => s.name).includes(colorwaySourceName)) {
+                        setNameError("Error: An online source with that name already exists");
+                    }
+                    else if (sourcesArr.map(s => s.url).includes(colorwaySourceURL)) {
+                        setURLError("Error: An online source with that url already exists");
+                    } else {
+                        onFinish(colorwaySourceName, colorwaySourceURL);
+                        modalProps.onClose();
+                    }
+                }}
+            >
+                Finish
+            </Button>
+            <Button
+                style={{ marginLeft: 8 }}
+                color={Button.Colors.PRIMARY}
+                size={Button.Sizes.MEDIUM}
+                look={Button.Looks.FILLED}
+                onClick={() => modalProps.onClose()}
+            >
+                Cancel
+            </Button>
+        </ModalFooter>
+    </ModalRoot>;
+}
+
 export default function () {
-    const [colorwaySourceFiles, setColorwaySourceFiles] = useState<string[]>();
+    const [colorwaySourceFiles, setColorwaySourceFiles] = useState<{ name: string, url: string; }[]>();
     const [customColorwayStores, setCustomColorwayStores] = useState<{ name: string, colorways: Colorway[]; }[]>([]);
 
     const { item: radioBarItem, itemFilled: radioBarItemFilled } = findByProps("radioBar");
@@ -82,51 +151,10 @@ export default function () {
                 size={Button.Sizes.SMALL}
                 color={Button.Colors.TRANSPARENT}
                 onClick={() => {
-                    openModal(props => {
-                        var colorwaySource = "";
-                        return <ModalRoot {...props} className="colorwaySourceModal">
-                            <ModalHeader>
-                                <Text variant="heading-lg/semibold" tag="h1">
-                                    Add a source:
-                                </Text>
-                            </ModalHeader>
-                            <TextInput
-                                placeholder="Enter a valid URL..."
-                                onChange={e => colorwaySource = e}
-                                style={{ margin: "8px", width: "calc(100% - 16px)" }}
-                            />
-                            <ModalFooter>
-                                <Button
-                                    style={{ marginLeft: 8 }}
-                                    color={Button.Colors.BRAND}
-                                    size={Button.Sizes.MEDIUM}
-                                    look={Button.Looks.FILLED}
-                                    onClick={async () => {
-                                        var sourcesArr: string[] = [];
-                                        const colorwaySourceFilesArr = await DataStore.get("colorwaySourceFiles");
-                                        colorwaySourceFilesArr.map((source: string) => sourcesArr.push(source));
-                                        if (colorwaySource !== defaultColorwaySource) {
-                                            sourcesArr.push(colorwaySource);
-                                        }
-                                        DataStore.set("colorwaySourceFiles", sourcesArr);
-                                        setColorwaySourceFiles(sourcesArr);
-                                        props.onClose();
-                                    }}
-                                >
-                                    Finish
-                                </Button>
-                                <Button
-                                    style={{ marginLeft: 8 }}
-                                    color={Button.Colors.PRIMARY}
-                                    size={Button.Sizes.MEDIUM}
-                                    look={Button.Looks.FILLED}
-                                    onClick={() => props.onClose()}
-                                >
-                                    Cancel
-                                </Button>
-                            </ModalFooter>
-                        </ModalRoot>;
-                    });
+                    openModal(props => <AddOnlineStoreModal modalProps={props} onFinish={async (name, url) => {
+                        await DataStore.set("colorwaySourceFiles", [...await DataStore.get("colorwaySourceFiles"), { name: name, url: url }]);
+                        setColorwaySourceFiles([...await DataStore.get("colorwaySourceFiles"), { name: name, url: url }]);
+                    }} />);
                 }}>
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -144,29 +172,25 @@ export default function () {
             </Button>
         </Flex>
         <ScrollerThin orientation="vertical" style={{ maxHeight: "250px" }} className="colorwaysSettings-sourceScroller">
-            {colorwaySourceFiles?.map((colorwaySourceFile: string) => <div className={`${radioBarItem} ${radioBarItemFilled} colorwaysSettings-colorwaySource`}>
-
-                {knownColorwaySources.find(o => o.url === colorwaySourceFile) ? <div className="hoverRoll">
+            {colorwaySourceFiles?.map((colorwaySourceFile: { name: string, url: string; }, i: number) => <div className={`${radioBarItem} ${radioBarItemFilled} colorwaysSettings-colorwaySource`}>
+                <div className="hoverRoll">
                     <Text className="colorwaysSettings-colorwaySourceLabel hoverRoll_normal">
-                        {knownColorwaySources.find(o => o.url === colorwaySourceFile)!.name} {colorwaySourceFile === defaultColorwaySource && <div className="colorways-badge">Built-In</div>}
+                        {colorwaySourceFile.name} {colorwaySourceFile.url === defaultColorwaySource && <div className="colorways-badge">Built-In</div>}
                     </Text>
                     <Text className="colorwaysSettings-colorwaySourceLabel hoverRoll_hovered">
-                        {colorwaySourceFile}
+                        {colorwaySourceFile.url}
                     </Text>
                 </div>
-                    : <Text className="colorwaysSettings-colorwaySourceLabel">
-                        {colorwaySourceFile}
-                    </Text>}
                 <Button
                     innerClassName="colorwaysSettings-iconButtonInner"
                     size={Button.Sizes.ICON}
                     color={Button.Colors.PRIMARY}
                     look={Button.Looks.OUTLINED}
-                    onClick={() => { Clipboard.copy(colorwaySourceFile); }}
+                    onClick={() => { Clipboard.copy(colorwaySourceFile.url); }}
                 >
                     <CopyIcon width={20} height={20} />
                 </Button>
-                {colorwaySourceFile !== defaultColorwaySource
+                {colorwaySourceFile.url !== defaultColorwaySource
                     && <>
                         <Button
                             innerClassName="colorwaysSettings-iconButtonInner"
@@ -174,9 +198,9 @@ export default function () {
                             color={Button.Colors.PRIMARY}
                             look={Button.Looks.OUTLINED}
                             onClick={async () => {
-                                openModal(props => <StoreNameModal conflicting={false} modalProps={props} originalName={knownColorwaySources.find(o => o.url === colorwaySourceFile)!.name || ""} onFinish={async e => {
+                                openModal(props => <StoreNameModal conflicting={false} modalProps={props} originalName={colorwaySourceFile.name || ""} onFinish={async e => {
                                     const modal = openModal(propss => <ModalRoot {...propss} className="colorwaysLoadingModal"><Spinner style={{ color: "#ffffff" }} /></ModalRoot>);
-                                    const res = await fetch(colorwaySourceFile);
+                                    const res = await fetch(colorwaySourceFile.url);
                                     const data = await res.json();
                                     DataStore.set("customColorways", [...await DataStore.get("customColorways"), { name: e, colorways: data.colorways || [] }]);
                                     setCustomColorwayStores(await DataStore.get("customColorways") as { name: string, colorways: Colorway[]; }[]);
@@ -192,9 +216,8 @@ export default function () {
                             color={Button.Colors.RED}
                             look={Button.Looks.OUTLINED}
                             onClick={async () => {
-                                var sourcesArr: string[] = [...await DataStore.get("colorwaySourceFiles")];
-                                DataStore.set("colorwaySourceFiles", sourcesArr.filter(source => source !== colorwaySourceFile));
-                                setColorwaySourceFiles(sourcesArr.filter(source => source !== colorwaySourceFile));
+                                DataStore.set("colorwaySourceFiles", (await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[]).splice(i, 1));
+                                setColorwaySourceFiles((await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[]).splice(i, 1));
                             }}
                         >
                             <DeleteIcon width={20} height={20} />
@@ -291,7 +314,7 @@ export default function () {
         </Flex>
         <Flex flexDirection="column" style={{ gap: 0 }}>
             {getComputedStyle(document.body).getPropertyValue("--os-accent-color") ? <div className={`${radioBarItem} ${radioBarItemFilled} colorwaysSettings-colorwaySource`}>
-                <Flex style={{ gap: 0, alignItems: "center", width: "100%", height: "44px" }}>
+                <Flex style={{ gap: 0, alignItems: "center", width: "100%", height: "30px" }}>
                     <Text className="colorwaysSettings-colorwaySourceLabel">OS Accent Color{" "}
                         <div className="colorways-badge">Built-In</div>
                     </Text>

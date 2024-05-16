@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import { UserStore } from "@webpack/common";
 import { Plugins } from "Vencord";
 
 import { HexToHSL } from "./utils";
@@ -469,8 +470,14 @@ export function gradientBase(accentColor?: string, discordSaturation = false) {
 }`;
 }
 
-export function generateCss(primaryColor: string, secondaryColor: string, tertiaryColor: string, accentColor: string, tintedText: boolean, discordSaturation: boolean, mutedTextBrightness?: number) {
-    return `/*Automatically Generated - Colorway Creator V${(Plugins.plugins.DiscordColorways as any).creatorVersion}*/
+export function generateCss(primaryColor: string, secondaryColor: string, tertiaryColor: string, accentColor: string, tintedText: boolean, discordSaturation: boolean, mutedTextBrightness?: number, name?: string) {
+    return `/**
+ * @name ${name}
+ * @version ${(Plugins.plugins.DiscordColorways as any).creatorVersion}
+ * @description Automatically generated Colorway.
+ * @author ${UserStore.getCurrentUser().username}
+ * @authorId ${UserStore.getCurrentUser().id}
+ */
 :root:root {
     --brand-100-hsl: ${HexToHSL("#" + accentColor)[0]} calc(var(--saturation-factor, 1)*${discordSaturation ? Math.round(((HexToHSL("#" + accentColor)[1] / 100) * (100 + BrandSatDiffs[100])) * 10) / 10 : HexToHSL("#" + accentColor)[1]}%) ${Math.max(Math.round((HexToHSL("#" + accentColor)[2] + BrandLightDiffs[100]) * 10) / 10, 0)};
     --brand-130-hsl: ${HexToHSL("#" + accentColor)[0]} calc(var(--saturation-factor, 1)*${discordSaturation ? Math.round(((HexToHSL("#" + accentColor)[1] / 100) * (100 + BrandSatDiffs[130])) * 10) / 10 : HexToHSL("#" + accentColor)[1]}%) ${Math.max(Math.round((HexToHSL("#" + accentColor)[2] + BrandLightDiffs[130]) * 10) / 10, 0)}%;

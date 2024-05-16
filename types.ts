@@ -47,6 +47,17 @@ export interface SourceObject {
 export enum SortOptions {
     NAME_AZ = 1,
     NAME_ZA = 2,
-    PRESET_AZ = 3,
-    PRESET_ZA = 4
+    SOURCE_AZ = 3,
+    SOURCE_ZA = 4
+}
+
+export interface StoreObject {
+    sources: StoreItem[];
+}
+
+export interface StoreItem {
+    name: string,
+    id: string,
+    description: string,
+    url: string;
 }

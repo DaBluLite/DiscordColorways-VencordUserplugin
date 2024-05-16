@@ -18,6 +18,7 @@ import {
     Clipboard,
     Forms,
     Heading,
+    i18n,
     SettingsRouter,
     Toasts
 } from "@webpack/common";
@@ -32,6 +33,7 @@ import Selector from "./components/Selector";
 import OnDemandWaysPage from "./components/SettingsTabs/OnDemandPage";
 import SettingsPage from "./components/SettingsTabs/SettingsPage";
 import SourceManager from "./components/SettingsTabs/SourceManager";
+import Store from "./components/SettingsTabs/Store";
 import Spinner from "./components/Spinner";
 import { defaultColorwaySource } from "./constants";
 import { generateCss, getAutoPresets } from "./css";
@@ -71,7 +73,6 @@ export let ColorPicker: React.FunctionComponent<ColorPickerProps> = () => {
     ]);
 
     const defaults = [
-        { name: "colorwaySourceFiles", value: colorwaySourceFiles, default: [defaultColorwaySource] },
         { name: "showColorwaysButton", value: showColorwaysButton, default: false },
         { name: "onDemandWays", value: onDemandWays, default: false },
         { name: "onDemandWaysTintedText", value: onDemandWaysTintedText, default: true },
@@ -95,6 +96,18 @@ export let ColorPicker: React.FunctionComponent<ColorPickerProps> = () => {
         DataStore.set("customColorways", []);
     }
 
+    if (colorwaySourceFiles) {
+        if (typeof colorwaySourceFiles[0] === "string") {
+            const newSourceList: { name: string, url: string; }[] = [...colorwaySourceFiles.map((sourceURL: string, i: number) => ({ name: sourceURL === defaultColorwaySource ? "Project Colorway" : `Source #${i}` }))];
+            DataStore.set("colorwaySourceFiles", newSourceList);
+        }
+    } else {
+        DataStore.set("colorwaySourceFiles", [{
+            name: "Project Colorway",
+            url: defaultColorwaySource
+        }]);
+    }
+
 })();
 
 export const ColorwayCSS = {
@@ -112,7 +125,7 @@ export const ColorwayCSS = {
 };
 
 export const versionData = {
-    pluginVersion: "5.7.0a3",
+    pluginVersion: "5.7.0b1",
     creatorVersion: "1.20",
 };
 
@@ -179,14 +192,56 @@ export default definePlugin({
         {
             find: "Messages.ACTIVITY_SETTINGS",
             replacement: {
-                match: /\{section:(\i\.\i)\.HEADER,\s*label:(\i)\.\i\.Messages\.APP_SETTINGS\}/,
+                match: /\{section:(\i\.\i)\.HEADER,\s*label:(\i)\.\i\.Messages\.APP_SETTINGS/,
                 replace: "...$self.makeSettingsCategories($1),$&"
+            }
+        },
+        {
+            find: "Messages.ACTIVITY_SETTINGS",
+            replacement: {
+                match: /(?<=section:(.{0,50})\.DIVIDER\}\))([,;])(?=.{0,200}(\i)\.push.{0,100}label:(\i)\.header)/,
+                replace: (_, sectionTypes, commaOrSemi, elements, element) => `${commaOrSemi} $self.addSettings(${elements}, ${element}, ${sectionTypes}) ${commaOrSemi}`
+            }
+        },
+        {
+            find: "Messages.USER_SETTINGS_ACTIONS_MENU_LABEL",
+            replacement: {
+                match: /(?<=function\((\i),\i\)\{)(?=let \i=Object.values\(\i.UserSettingsSections\).*?(\i)\.default\.open\()/,
+                replace: "$2.default.open($1);return;"
             }
         }
     ],
 
     set ColorPicker(e) {
         ColorPicker = e;
+    },
+
+    isRightSpot({ header, settings }: { header?: string; settings?: string[]; }) {
+        const firstChild = settings?.[0];
+        // lowest two elements... sanity backup
+        if (firstChild === "LOGOUT" || firstChild === "SOCIAL_LINKS") return true;
+
+        const settingsLocation = "belowNitro";
+
+        if (!header) return;
+
+        const names = {
+            top: i18n.Messages.USER_SETTINGS,
+            aboveNitro: i18n.Messages.BILLING_SETTINGS,
+            belowNitro: i18n.Messages.APP_SETTINGS,
+            aboveActivity: i18n.Messages.ACTIVITY_SETTINGS
+        };
+        return header === names[settingsLocation];
+    },
+
+    patchedSettings: new WeakSet(),
+
+    addSettings(elements: any[], element: { header?: string; settings: string[]; }, sectionTypes: Record<string, unknown>) {
+        if (this.patchedSettings.has(elements) || !this.isRightSpot(element)) return;
+
+        this.patchedSettings.add(elements);
+
+        elements.push(...this.makeSettingsCategories(sectionTypes));
     },
 
     makeSettingsCategories(SectionTypes: Record<string, unknown>) {
@@ -198,7 +253,8 @@ export default definePlugin({
                 className: "vc-settings-header",
                 element: () => <div className={header} style={{
                     display: "flex",
-                    justifyContent: "space-between"
+                    justifyContent: "space-between",
+                    padding: "6px 10px"
                 }}>
                     <Heading
                         variant="eyebrow"
@@ -245,6 +301,12 @@ export default definePlugin({
                 label: "On-Demand",
                 element: OnDemandWaysPage,
                 className: "dc-colorway-ondemand"
+            },
+            {
+                section: "ColorwaysStore",
+                label: "Store",
+                element: Store,
+                className: "dc-colorway-store"
             },
             {
                 section: SectionTypes.DIVIDER
@@ -318,7 +380,9 @@ export default definePlugin({
                                                         colorToHex(hexToString(colorID).split(/,#/)[3]),
                                                         colorToHex(hexToString(colorID).split(/,#/)[0]),
                                                         true,
-                                                        true
+                                                        true,
+                                                        undefined,
+                                                        "Temporary Colorway"
                                                     ), sourceType: "temporary", source: null
                                                 });
                                                 ColorwayCSS.set(generateCss(
@@ -327,7 +391,9 @@ export default definePlugin({
                                                     colorToHex(hexToString(colorID).split(/,#/)[3]),
                                                     colorToHex(hexToString(colorID).split(/,#/)[0]),
                                                     true,
-                                                    true
+                                                    true,
+                                                    undefined,
+                                                    "Temporary Colorway"
                                                 ));
                                             }
                                         }}

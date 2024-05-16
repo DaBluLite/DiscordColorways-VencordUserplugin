@@ -106,16 +106,11 @@ export default function ({
             id: "all",
             sources: [...colorwayData, ...customColorwayData]
         },
-        {
-            name: "Online",
-            id: "online",
-            sources: colorwayData
-        },
-        // ...colorwayData.map((source) => ({
-        //     name: source.source,
-        //     id: source.source.toLowerCase().replaceAll(" ", "-"),
-        //     sources: [source]
-        // })),
+        ...colorwayData.map((source) => ({
+            name: source.source,
+            id: source.source.toLowerCase().replaceAll(" ", "-"),
+            sources: [source]
+        })),
         ...customColorwayData.map((source) => ({
             name: source.source,
             id: source.source.toLowerCase().replaceAll(" ", "-"),
@@ -129,16 +124,21 @@ export default function ({
         setShowLabelsInSelectorGridView(await DataStore.get("showLabelsInSelectorGridView") as boolean);
         setLoaderHeight("0px");
         setCustomColorwayData((await DataStore.get("customColorways") as { name: string, colorways: Colorway[], id?: string; }[]).map((colorSrc: { name: string, colorways: Colorway[], id?: string; }) => ({ type: "offline", source: colorSrc.name, colorways: colorSrc.colorways })));
+
+        const onlineSources: { name: string, url: string; }[] = await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[];
+
         const responses: Response[] = await Promise.all(
-            (await DataStore.get("colorwaySourceFiles") as string[]).map((url: string) =>
-                fetch(url, force ? { cache: "no-store" } : {})
+            onlineSources.map((source) =>
+                fetch(source.url, force ? { cache: "no-store" } : {})
             )
         );
 
         setColorwayData(await Promise.all(
-            responses.map((res: Response) =>
-                res.json().then(dt => ({ colorways: dt.colorways as Colorway[], source: res.url, type: "online" })).catch(() => ({ colorways: [] as Colorway[], source: res.url, type: "online" }))
-            )) as { type: "online" | "offline" | "temporary", source: string, colorways: Colorway[]; }[]);
+            responses
+                .map((res, i) => ({ response: res, name: onlineSources[i].name }))
+                .map((res: { response: Response, name: string; }) =>
+                    res.response.json().then(dt => ({ colorways: dt.colorways as Colorway[], source: res.name, type: "online" })).catch(() => ({ colorways: [] as Colorway[], source: res.name, type: "online" }))
+                )) as { type: "online" | "offline" | "temporary", source: string, colorways: Colorway[]; }[]);
     }
 
     useEffect(() => {
@@ -174,14 +174,20 @@ export default function ({
                         id="selector-viewMode_grid"
                         label="Grid"
                         checked={viewMode === "grid"}
-                        action={() => setViewMode("grid")}
+                        action={() => {
+                            setViewMode("grid");
+                            DataStore.set("selectorViewMode", "grid");
+                        }}
                     />
                     <Menu.MenuRadioItem
                         group="selector-viewMode"
                         id="selector-viewMode_list"
                         label="List"
                         checked={viewMode === "list"}
-                        action={() => setViewMode("list")}
+                        action={() => {
+                            setViewMode("list");
+                            DataStore.set("selectorViewMode", "list");
+                        }}
                     />
                 </Menu.MenuGroup>
                 <Menu.MenuGroup label="Sort By">
@@ -198,6 +204,20 @@ export default function ({
                         label="Name (Z-A)"
                         checked={sortBy === SortOptions.NAME_ZA}
                         action={() => setSortBy(SortOptions.NAME_ZA)}
+                    />
+                    <Menu.MenuRadioItem
+                        group="sort-colorways"
+                        id="sort-colorways_source-az"
+                        label="Source (A-Z)"
+                        checked={sortBy === SortOptions.SOURCE_AZ}
+                        action={() => setSortBy(SortOptions.SOURCE_AZ)}
+                    />
+                    <Menu.MenuRadioItem
+                        group="sort-colorways"
+                        id="sort-colorways_source-za"
+                        label="Source (Z-A)"
+                        checked={sortBy === SortOptions.SOURCE_ZA}
+                        action={() => setSortBy(SortOptions.SOURCE_ZA)}
                     />
                 </Menu.MenuGroup>
             </Menu.Menu>
@@ -330,7 +350,7 @@ export default function ({
             </SelectorHeader>
             <SelectorContent isSettings={isSettings}>
                 <div className="colorwaysLoader-barContainer"><div className="colorwaysLoader-bar" style={{ height: loaderHeight }} /></div>
-                <ScrollerThin style={{ maxHeight: "450px" }} className={"ColorwaySelectorWrapper " + (viewMode === "grid" ? "ColorwaySelectorWrapper-grid" : "ColorwaySelectorWrapper-list") + (showLabelsInSelectorGridView ? " colorwaySelector-gridWithLabels" : "")}>
+                <ScrollerThin style={{ maxHeight: isSettings ? "unset" : "450px" }} className={"ColorwaySelectorWrapper " + (viewMode === "grid" ? "ColorwaySelectorWrapper-grid" : "ColorwaySelectorWrapper-list") + (showLabelsInSelectorGridView ? " colorwaySelector-gridWithLabels" : "")}>
                     {activeColorwayObject.sourceType === "temporary" && <Tooltip text="Temporary Colorway">
                         {({ onMouseEnter, onMouseLeave }) => <div
                             className={viewMode === "grid" ? "discordColorway" : `${radioBarItem} ${radioBarItemFilled} discordColorway-listItem`}
@@ -467,6 +487,10 @@ export default function ({
                                         return a.name.localeCompare(b.name);
                                     case SortOptions.NAME_ZA:
                                         return b.name.localeCompare(a.name);
+                                    case SortOptions.SOURCE_AZ:
+                                        return a.source.localeCompare(b.source);
+                                    case SortOptions.SOURCE_ZA:
+                                        return b.source.localeCompare(a.source);
                                     default:
                                         return a.name.localeCompare(b.name);
                                 }
@@ -512,7 +536,9 @@ export default function ({
                                                                     colorToHex(color.tertiary),
                                                                     colorToHex(onDemandWaysOsAccentColor ? getComputedStyle(document.body).getPropertyValue("--os-accent-color") : color.accent).slice(0, 6),
                                                                     onDemandWaysTintedText,
-                                                                    onDemandWaysDiscordSaturation
+                                                                    onDemandWaysDiscordSaturation,
+                                                                    undefined,
+                                                                    color.name
                                                                 ) : gradientBase(colorToHex(onDemandWaysOsAccentColor ? getComputedStyle(document.body).getPropertyValue("--os-accent-color") : color.accent), onDemandWaysDiscordSaturation) + `:root:root {--custom-theme-background: linear-gradient(${color.linearGradient})}`;
                                                                 ColorwayCSS.set(demandedColorway);
                                                                 setActiveColorwayObject({ id: color.name, css: demandedColorway, sourceType: color.type, source: color.source });
@@ -552,8 +578,7 @@ export default function ({
                                                             e.stopPropagation();
                                                             openModal((props) => <ColorwayInfoModal
                                                                 modalProps={props}
-                                                                colorwayProps={color}
-                                                                offlineSourceName={color.type === "offline" ? color.source : ""}
+                                                                colorway={color}
                                                                 loadUIProps={loadUI}
                                                             />);
                                                         }}

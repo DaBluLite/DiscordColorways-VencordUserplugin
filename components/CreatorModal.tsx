@@ -95,8 +95,9 @@ export default function ({
                         setColorwayName(prop.split("n:")[1]);
                     }
                     if (prop.includes("p:")) {
-                        if (Object.values(getPreset()).map(({ id }) => id).includes(prop.split("p:")[1])) {
+                        if (Object.values(getPreset()).map(preset => preset.id).includes(prop.split("p:")[1])) {
                             setPreset(prop.split("p:")[1]);
+                            setPresetColorArray(getPreset()[prop.split("p:")[1]].colors);
                         }
                     }
                 });
@@ -208,7 +209,8 @@ export default function ({
                                 accentColor,
                                 tintedText,
                                 discordSaturation,
-                                mutedTextBrightness
+                                mutedTextBrightness,
+                                (colorwayName || "Colorway")
                             );
                         } else {
                             gradientPresetIds.includes(getPreset()[preset].id) ?

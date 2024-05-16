@@ -13,7 +13,7 @@ import { Button, Text, TextInput, useEffect, useState } from "@webpack/common";
 import { Colorway } from "../types";
 import { StoreNameModal } from "./SettingsTabs/SourceManager";
 
-export default function ({ modalProps, colorways, onFinish }: { modalProps: ModalProps, colorways: Colorway[], onFinish?: () => void; }) {
+export default function ({ modalProps, colorways, onFinish }: { modalProps: ModalProps, colorways: Colorway[], onFinish: () => void; }) {
     const [offlineColorwayStores, setOfflineColorwayStores] = useState<{ name: string, colorways: Colorway[], id?: string; }[]>([]);
     const [storename, setStorename] = useState<string>();
     const [noStoreError, setNoStoreError] = useState<boolean>(false);
@@ -182,7 +182,7 @@ export default function ({ modalProps, colorways, onFinish }: { modalProps: Moda
                                 DataStore.set("customColorways", [...oldStores!.filter(source => source.name !== storename), newStore]);
                                 if (i + 1 === colorways.length) {
                                     modalProps.onClose();
-                                    onFinish!();
+                                    onFinish();
                                 }
                             }
                         });
