@@ -216,8 +216,8 @@ export default function () {
                             color={Button.Colors.RED}
                             look={Button.Looks.OUTLINED}
                             onClick={async () => {
-                                DataStore.set("colorwaySourceFiles", (await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[]).splice(i, 1));
-                                setColorwaySourceFiles((await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[]).splice(i, 1));
+                                DataStore.set("colorwaySourceFiles", (await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[]).filter((src, ii) => ii !== i));
+                                setColorwaySourceFiles((await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[]).filter((src, ii) => ii !== i));
                             }}
                         >
                             <DeleteIcon width={20} height={20} />

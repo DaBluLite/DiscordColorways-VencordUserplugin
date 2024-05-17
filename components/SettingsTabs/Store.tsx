@@ -7,6 +7,7 @@
 import { DataStore } from "@api/index";
 import { Flex } from "@components/Flex";
 import { DeleteIcon } from "@components/Icons";
+import { Link } from "@components/Link";
 import { SettingsTab } from "@components/VencordSettings/shared";
 import { findByProps } from "@webpack";
 import { Button, ScrollerThin, Text, TextInput, Tooltip, useEffect, useState } from "@webpack/common";
@@ -92,6 +93,7 @@ export default function () {
                         <Text className="colorwaysSettings-colorwaySourceDesc">
                             {item.description}
                         </Text>
+                        <Link className="colorwaysSettings-colorwaySourceDesc" href={"https://github.com/" + item.authorGh}>by {item.authorGh}</Link>
                     </Flex>
                     <Button
                         innerClassName="colorwaysSettings-iconButtonInner"

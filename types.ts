@@ -59,5 +59,6 @@ export interface StoreItem {
     name: string,
     id: string,
     description: string,
-    url: string;
+    url: string,
+    authorGh: string;
 }
