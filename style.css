@@ -18,7 +18,7 @@
 }
 
 .ColorwaySelectorBtn:hover {
-    background-color: var(--brand-experiment);
+    background-color: var(--brand-500);
     border-radius: 16px;
 }
 

@@ -125,7 +125,7 @@ export const ColorwayCSS = {
 };
 
 export const versionData = {
-    pluginVersion: "5.7.0",
+    pluginVersion: "5.7.1",
     creatorVersion: "1.20",
 };
 
@@ -188,13 +188,6 @@ export default definePlugin({
                 match: /function (\i).{0,200}colorPickerFooter:/,
                 replace: "$self.ColorPicker=$1;$&",
             },
-        },
-        {
-            find: "Messages.ACTIVITY_SETTINGS",
-            replacement: {
-                match: /\{section:(\i\.\i)\.HEADER,\s*label:(\i)\.\i\.Messages\.APP_SETTINGS/,
-                replace: "...$self.makeSettingsCategories($1),$&"
-            }
         },
         {
             find: "Messages.ACTIVITY_SETTINGS",

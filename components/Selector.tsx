@@ -40,8 +40,7 @@ import ColorPickerModal from "./ColorPicker";
 import CreatorModal from "./CreatorModal";
 import { CodeIcon, IDIcon, MoreIcon, PalleteIcon } from "./Icons";
 import ColorwayInfoModal from "./InfoModal";
-
-const { SelectionCircle } = findByPropsLazy("SelectionCircle");
+import SelectionCircle from "./SelectionCircle";
 
 function SelectorContainer({ children, isSettings, modalProps }: { children: ReactNode, isSettings?: boolean, modalProps: ModalProps; }) {
     if (!isSettings) {
