@@ -11,7 +11,7 @@ import { Flex } from "@components/Flex";
 import { DeleteIcon, PlusIcon } from "@components/Icons";
 import { SettingsTab } from "@components/VencordSettings/shared";
 import { ModalContent, ModalFooter, ModalHeader, ModalProps, ModalRoot, openModal } from "@utils/modal";
-import { findByProps, findByPropsLazy } from "@webpack";
+import { findByProps } from "@webpack";
 import {
     Button,
     ButtonLooks,

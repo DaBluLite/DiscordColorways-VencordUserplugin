@@ -17,9 +17,9 @@ import {
     useState
 } from "@webpack/common";
 import { FluxEvents } from "@webpack/types";
-import { versionData } from "userplugins/discordColorways";
 
 import { fallbackColorways } from "../../constants";
+import { versionData } from "../../index";
 import { Colorway } from "../../types";
 
 export default function () {

@@ -13,8 +13,8 @@ import { getTheme, Theme } from "@utils/discord";
 import { openModal } from "@utils/modal";
 import { findByProps } from "@webpack";
 import { Button, ScrollerThin, Text, TextInput, Tooltip, useEffect, useState } from "@webpack/common";
-import { StoreItem } from "userplugins/discordColorways/types";
 
+import { StoreItem } from "../../types";
 import { DownloadIcon, PalleteIcon } from "../Icons";
 import Selector from "../Selector";
 
