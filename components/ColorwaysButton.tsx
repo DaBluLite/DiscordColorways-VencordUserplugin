@@ -9,7 +9,7 @@ import { PalleteIcon } from "./Icons";
 import { getAutoPresets } from "../css";
 import { ColorwayObject } from "../types";
 import Selector from "./MainModal";
-import { DataStore, useEffect, useState, FluxDispatcher, FluxEvents, openModal } from "..";
+import { DataStore, useEffect, useState, FluxDispatcher, FluxEvents, openModal, PluginProps } from "..";
 import Tooltip from "./Tooltip";
 
 export default function () {
@@ -23,14 +23,12 @@ export default function () {
             setIsThin(await DataStore.get("useThinMenuButton") as boolean);
             setAutoPreset(await DataStore.get("activeAutoPreset") as string);
         })();
-    });
 
-    FluxDispatcher.subscribe("COLORWAYS_UPDATE_BUTTON_HEIGHT" as FluxEvents, ({ isTall }) => {
-        setIsThin(isTall);
-    });
+        FluxDispatcher.subscribe("COLORWAYS_UPDATE_BUTTON_VISIBILITY" as FluxEvents, ({ isVisible }) => setVisibility(isVisible));
 
-    FluxDispatcher.subscribe("COLORWAYS_UPDATE_BUTTON_VISIBILITY" as FluxEvents, ({ isVisible }) => {
-        setVisibility(isVisible);
+        return () => {
+            FluxDispatcher.unsubscribe("COLORWAYS_UPDATE_BUTTON_VISIBILITY" as FluxEvents, ({ isVisible }) => setVisibility(isVisible));
+        };
     });
 
     return <Tooltip text={
@@ -43,7 +41,7 @@ export default function () {
         </>
     } position="right"
     >
-        {({ onMouseEnter, onMouseLeave, onClick }) => visibility ? <div className="ColorwaySelectorBtnContainer">
+        {({ onMouseEnter, onMouseLeave, onClick }) => (visibility || PluginProps.clientMod === "BetterDiscord") ? <div className="ColorwaySelectorBtnContainer">
             <div
                 className={"ColorwaySelectorBtn" + (isThin ? " ColorwaySelectorBtn_thin" : "")}
                 onMouseEnter={async () => {
