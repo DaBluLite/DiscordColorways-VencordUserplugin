@@ -23,5 +23,6 @@ export default function ({
                 })}
             </div>
         })}
+        {items.map(item => active === item.name ? item.component() : null)}
     </>;
 }

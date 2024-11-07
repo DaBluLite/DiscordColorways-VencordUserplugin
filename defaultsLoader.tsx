@@ -1,7 +1,14 @@
+/*
+ * Vencord, a Discord client mod
+ * Copyright (c) 2024 Vendicated and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 import { DataStore } from ".";
 import { defaultColorwaySource, nullColorwayObj } from "./constants";
 
 export default async function () {
+
     const [
         customColorways,
         colorwaySourceFiles,
@@ -11,7 +18,10 @@ export default async function () {
         colorwaysBoundManagers,
         colorwaysManagerAutoconnectPeriod,
         colorwaysManagerDoAutoconnect,
-        colorwaysPreset
+        colorwaysPreset,
+        colorwaysForceVR,
+        activeAutoPreset,
+        colorwayUsageMetrics
     ] = await DataStore.getMany([
         "customColorways",
         "colorwaySourceFiles",
@@ -21,10 +31,13 @@ export default async function () {
         "colorwaysBoundManagers",
         "colorwaysManagerAutoconnectPeriod",
         "colorwaysManagerDoAutoconnect",
-        "colorwaysPreset"
+        "colorwaysPreset",
+        "colorwaysForceVR",
+        "activeAutoPreset",
+        "colorwayUsageMetrics"
     ]);
 
-    const defaults = [
+    [
         {
             name: "colorwaysManagerAutoconnectPeriod",
             value: colorwaysManagerAutoconnectPeriod,
@@ -59,10 +72,23 @@ export default async function () {
             name: "colorwaysPreset",
             value: colorwaysPreset,
             default: "default"
+        },
+        {
+            name: "colorwaysForceVR",
+            value: colorwaysForceVR,
+            default: false
+        },
+        {
+            name: "activeAutoPreset",
+            value: activeAutoPreset,
+            default: "hueRotation"
+        },
+        {
+            name: "colorwayUsageMetrics",
+            value: colorwayUsageMetrics,
+            default: []
         }
-    ];
-
-    defaults.forEach(({ name, value, default: def }) => {
+    ].forEach(({ name, value, default: def }) => {
         if (!value) DataStore.set(name, def);
     });
 
@@ -87,4 +113,4 @@ export default async function () {
         }]);
     }
 
-};
+}

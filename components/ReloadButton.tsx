@@ -1,12 +1,25 @@
-import { useRef, useState, useEffect } from "..";
-import { MouseEvent } from "react";
+/*
+ * Vencord, a Discord client mod
+ * Copyright (c) 2024 Vendicated and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-export default function ({ onClick, onForceReload }: { onClick: () => void, onForceReload: () => void; }) {
+import { useEffect, useRef, useState } from "..";
+import { contexts, setContext } from "../contexts";
+import { Colorway, SourceObject } from "../types";
+
+export default function ({
+    onClick,
+    setShowSpinner
+}: {
+    onClick: (data: SourceObject[]) => Promise<void>,
+    setShowSpinner: (value: React.SetStateAction<boolean>) => void;
+}) {
     const menuProps = useRef(null);
     const [pos, setPos] = useState({ x: 0, y: 0 });
     const [showMenu, setShowMenu] = useState(false);
 
-    function rightClickContextMenu(e: MouseEvent<HTMLButtonElement, MouseEvent>) {
+    function rightClickContextMenu(e: React.MouseEvent<HTMLButtonElement>) {
         e.stopPropagation();
         window.dispatchEvent(new Event("click"));
         setShowMenu(!showMenu);
@@ -26,9 +39,44 @@ export default function ({ onClick, onForceReload }: { onClick: () => void, onFo
         };
     }, []);
 
-    function onForceReload_internal() {
-        onForceReload();
+    async function onForceReload_internal() {
         setShowMenu(false);
+        setShowSpinner(true);
+
+        const responses: Response[] = await Promise.all(
+            contexts.colorwaySourceFiles.map(source =>
+                fetch(source.url, { "cache": "no-store" })
+            )
+        );
+
+        setShowSpinner(false);
+
+        return setContext("colorwayData", await Promise.all(
+            responses
+                .map((res, i) => ({ response: res, name: contexts.colorwaySourceFiles[i].name }))
+                .map((res: { response: Response, name: string; }) =>
+                    res.response.json().then(dt => ({ colorways: dt.colorways as Colorway[], source: res.name, type: "online" })).catch(() => ({ colorways: [] as Colorway[], source: res.name, type: "online" }))
+                )) as { type: "online" | "offline" | "temporary", source: string, colorways: Colorway[]; }[], false);
+    }
+
+    async function onReload_internal() {
+        setShowMenu(false);
+        setShowSpinner(true);
+
+        const responses: Response[] = await Promise.all(
+            contexts.colorwaySourceFiles.map(source =>
+                fetch(source.url)
+            )
+        );
+
+        setShowSpinner(false);
+
+        return setContext("colorwayData", await Promise.all(
+            responses
+                .map((res, i) => ({ response: res, name: contexts.colorwaySourceFiles[i].name }))
+                .map((res: { response: Response, name: string; }) =>
+                    res.response.json().then(dt => ({ colorways: dt.colorways as Colorway[], source: res.name, type: "online" })).catch(() => ({ colorways: [] as Colorway[], source: res.name, type: "online" }))
+                )) as { type: "online" | "offline" | "temporary", source: string, colorways: Colorway[]; }[], false);
     }
 
     return <>
@@ -37,7 +85,7 @@ export default function ({ onClick, onForceReload }: { onClick: () => void, onFo
             top: `${pos.y}px`,
             left: `${pos.x}px`
         }}>
-            <button onClick={onForceReload_internal} className="colorwaysContextMenuItm">
+            <button onClick={async () => onClick(await onForceReload_internal() as SourceObject[])} className="colorwaysContextMenuItm">
                 Force Refresh
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -64,7 +112,7 @@ export default function ({ onClick, onForceReload }: { onClick: () => void, onFo
                 </svg>
             </button>
         </nav> : null}
-        <button className="colorwaysPillButton" onContextMenu={rightClickContextMenu} onClick={onClick}>
+        <button className="colorwaysPillButton colorwaysPillButton-primary" onContextMenu={rightClickContextMenu} onClick={async () => onClick(await onReload_internal() as SourceObject[])}>
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 x="0px"

@@ -1,3 +1,9 @@
+/* stylelint-disable property-no-vendor-prefix */
+/* stylelint-disable function-linear-gradient-no-nonstandard-direction */
+/* stylelint-disable color-function-notation */
+/* stylelint-disable alpha-value-notation */
+/* stylelint-disable value-no-vendor-prefix */
+/* stylelint-disable color-hex-length */
 /* stylelint-disable no-descending-specificity */
 /* stylelint-disable declaration-block-no-redundant-longhand-properties */
 /* stylelint-disable selector-id-pattern */
@@ -20,6 +26,7 @@
 
 .ColorwaySelectorBtn:hover {
     background-color: var(--brand-500);
+    color: var(--white);
     border-radius: 16px;
 }
 
@@ -33,6 +40,7 @@
     height: 56px;
     box-shadow: 0 0 0 1.5px var(--interactive-normal);
     box-sizing: border-box;
+    flex-shrink: 0;
 }
 
 .discordColorwayPreviewColor {
@@ -59,14 +67,26 @@
 .colorways-selector {
     position: relative;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-	grid-template-rows: repeat(auto-fill, 44px);
+    grid-template-columns: repeat(2, calc(50% - 4px));
+    grid-auto-rows: max-content;
     gap: 8px;
     width: 100%;
     scrollbar-width: none !important;
-    flex-direction: column;
     box-sizing: border-box;
     overflow: hidden auto;
+}
+
+.colorways-selector[data-layout="compact"] {
+    grid-template-columns: repeat(3, calc((100%/3) - 5.3333px));
+}
+
+.colorways-selector[data-layout="compact"] > .discordColorway {
+    padding: 4px 6px;
+    min-height: 38px;
+}
+
+.colorways-selector[data-layout="compact"] > .discordColorway .colorwayLabelSubnote {
+    display: none;
 }
 
 .colorways-selector::-webkit-scrollbar {
@@ -86,6 +106,12 @@
     pointer-events: all;
     position: relative;
     animation: show-modal 0.2s ease-in-out;
+}
+
+.theme-light .colorwaySelectorModal,
+.theme-light .colorwayModal {
+    background-color: #f5f5f5;
+    border-color: #d6d6d6;
 }
 
 @keyframes reveal-modal {
@@ -201,7 +227,7 @@
     overflow: hidden;
     margin-top: 0;
     margin-bottom: 0;
-    color: #fff;
+    color: var(--header-primary);
     line-height: 24px;
     font-size: 16px;
     font-weight: 500;
@@ -210,14 +236,16 @@
 }
 
 .colorwaysNote {
-    color: #fff;
-    opacity: 0.5;
+    color: var(--header-secondary);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    margin-top: 8px;
 }
 
 .colorwayModal-selectorHeader {
     display: flex;
     width: 100%;
-    padding-bottom: 8px;
     box-sizing: border-box;
     flex-direction: column;
     gap: 8px;
@@ -234,44 +262,184 @@
 }
 
 .colorwaySelectorSidebar-tab {
-    font-family: bootstrap-icons, var(--font-display);
-    width: 48px;
-    height: 48px;
+    font-family: var(--font-display);
     border-radius: 8px;
     cursor: pointer;
     transition: 0.2s ease;
     border: 1px solid transparent;
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 24px;
+    line-height: 24px;
 }
 
 .colorwaysPillButton {
     padding: 4px 12px;
     border-radius: 16px;
-    background-color: #101010;
-    color: #fff;
+    background-color: transparent;
     transition: 0.2s ease;
     cursor: pointer;
     display: flex;
     gap: 0.5rem;
     justify-content: center;
     align-items: center;
-    width: fit-content;
-    height: 32px;
+    height: var(--custom-button-button-sm-height);
+    min-width: var(--custom-button-button-sm-width);
+    min-height: var(--custom-button-button-sm-height);
+    box-sizing: border-box;
 }
 
-.colorwaysPillButton.colorwaysPillButton-onSurface {
+.colorwaysPillButton-outlined {
+    transition: color var(--custom-button-transition-duration)ease,background-color var(--custom-button-transition-duration)ease,border-color var(--custom-button-transition-duration)ease !important;
+    border-width: 1px !important;
+    border-style: solid !important;
+}
+
+.colorwaysPillButton:not(.colorwaysPillButton-outlined).colorwaysPillButton-primary {
+    color: #fff;
+    background-color: #101010;
+}
+
+.theme-light .colorwaysPillButton:not(.colorwaysPillButton-outlined).colorwaysPillButton-primary {
+    color: #000;
+    background-color: #f0f0f0;
+}
+
+.colorwaysPillButton:not(.colorwaysPillButton-outlined).colorwaysPillButton-secondary {
+    color: #fff;
     background-color: #1a1a1a;
+}
+
+.theme-light.colorwaysPillButton:not(.colorwaysPillButton-outlined).colorwaysPillButton-secondary {
+    color: #000;
+    background-color: #e6e6e6;
+}
+
+.colorwaysPillButton:not(.colorwaysPillButton-outlined).colorwaysPillButton-danger {
+    color: #fff;
+    background-color: #e80808;
+}
+
+.colorwaysPillButton:not(.colorwaysPillButton-outlined).colorwaysPillButton-brand {
+    color: #000;
+    background-color: #fff;
+}
+
+.colorwaysPillButton.colorwaysPillButton-outlined.colorwaysPillButton-primary {
+    color: #fff;
+    border-color: #101010;
+}
+
+.colorwaysPillButton.colorwaysPillButton-outlined.colorwaysPillButton-secondary {
+    color: #fff;
+    border-color: #1a1a1a;
+}
+
+.colorwaysPillButton.colorwaysPillButton-outlined.colorwaysPillButton-danger {
+    color: #fff;
+    border-color: #e80808;
+}
+
+.colorwaysPillButton.colorwaysPillButton-outlined.colorwaysPillButton-brand {
+    color: #fff;
+    border-color: #fff;
+}
+
+.theme-light .colorwaysPillButton.colorwaysPillButton-outlined {
+    color: #000;
 }
 
 .colorwaysPillButton.colorwaysPillButton-icon {
     padding: 4px;
 }
 
-.colorwaysPillButton:hover {
+.colorwaysPillButton.colorwaysPillButton-primary:hover,
+.colorwaysPillButton.colorwaysPillButton-secondary:hover,
+.theme-light .colorwaysPillButton.colorwaysPillButton-brand:hover {
     background-color: #2a2a2a;
+    border-color: #2a2a2a;
+    color: #fff;
+}
+
+.colorwaysPillButton.colorwaysPillButton-primary:active,
+.colorwaysPillButton.colorwaysPillButton-secondary:active,
+.theme-light .colorwaysPillButton.colorwaysPillButton-brand:active {
+    background-color: #0a0a0a;
+    border-color: #0a0a0a;
+    color: #fff;
+}
+
+.theme-light .colorwaysPillButton.colorwaysPillButton-primary:hover,
+.theme-light .colorwaysPillButton.colorwaysPillButton-secondary:hover {
+    background-color: #d6d6d6;
+    border-color: #d6d6d6;
+    color: #000;
+}
+
+.theme-light .colorwaysPillButton.colorwaysPillButton-primary:active,
+.theme-light .colorwaysPillButton.colorwaysPillButton-secondary:active {
+    background-color: #919191;
+    border-color: #919191;
+    color: #000;
+}
+
+.colorwaysPillButton.colorwaysPillButton-danger:hover {
+    background-color: #c70707;
+    border-color: #c70707;
+    color: #fff;
+}
+
+.colorwaysPillButton.colorwaysPillButton-danger:active {
+    background-color: #b10606;
+    border-color: #b10606;
+    color: #fff;
+}
+
+.colorwaysPillButton.colorwaysPillButton-brand:hover {
+    background-color: #e1e1e1;
+    border-color: #e1e1e1;
+    color: #000;
+}
+
+.colorwaysPillButton.colorwaysPillButton-brand:active {
+    background-color: #919191;
+    border-color: #919191;
+    color: #000;
+}
+
+.theme-light .colorwaysPillButton.colorwaysPillButton-brand:hover {
+    background-color: #2a2a2a;
+    border-color: #2a2a2a;
+    color: #fff;
+}
+
+.theme-light .colorwaysPillButton.colorwaysPillButton-brand:active {
+    background-color: #0a0a0a;
+    border-color: #0a0a0a;
+    color: #fff;
+}
+
+.colorwaysPillButton-md {
+    height: var(--custom-button-button-md-height);
+    min-width: var(--custom-button-button-md-width);
+    min-height: var(--custom-button-button-md-height);
+}
+
+.colorwaysPillButton-lg {
+    height: var(--custom-button-button-lg-height);
+    min-width: var(--custom-button-button-lg-width);
+    min-height: var(--custom-button-button-lg-height);
+}
+
+.colorwaysPillButton-xl {
+    height: var(--custom-button-button-xl-height);
+    min-width: var(--custom-button-button-xl-width);
+    min-height: var(--custom-button-button-xl-height);
+}
+
+.colorwaysPillButton-tn {
+    height: var(--custom-button-button-tn-height);
+    min-width: var(--custom-button-button-tn-width);
+    min-height: var(--custom-button-button-tn-height);
 }
 
 .colorwaySelectorSidebar-tab:hover {
@@ -281,6 +449,15 @@
 .colorwaySelectorSidebar-tab.active {
     background-color: #0a0a0a;
     border-color: #a6a6a6;
+}
+
+.theme-light .colorwaySelectorSidebar-tab:hover {
+    background-color: #d6d6d6; /* #2a2a2a */
+}
+
+.theme-light .colorwaySelectorSidebar-tab.active {
+    background-color: #f5f5f5;
+    border-color: #595959;
 }
 
 .colorwaysPageHeader {
@@ -298,6 +475,11 @@
     flex-shrink: 0;
 }
 
+.theme-light .colorwaysPageHeader {
+    background-color: #f0f0f0;
+    color: #000;
+}
+
 .colorwaySelectorSidebar {
     background-color: #101010;
     color: #fff;
@@ -313,6 +495,11 @@
     gap: 8px;
     border-top-left-radius: 8px;
     border-bottom-left-radius: 8px;
+}
+
+.theme-light .colorwaySelectorSidebar {
+    background-color: #e6e6e6;
+    color: #000;
 }
 
 .colorwaySelectorModalContent {
@@ -350,7 +537,7 @@
 }
 
 .colorwayInfoIconContainer:hover {
-    background-color: var(--brand-experiment-560);
+    background-color: var(--brand-500-560);
 }
 
 .discordColorway:hover .colorwayInfoIconContainer {
@@ -377,14 +564,32 @@
 }
 
 .colorwayCreator-colorPreviews {
-    width: 100%;
-    height: fit-content;
+    width: 104px;
+    height: 104px;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    gap: 8px;
+    flex-wrap: wrap;
+    gap: 0;
     position: relative;
     box-sizing: border-box;
+    border-radius: 104px;
+    overflow: hidden;
+    border: 2px solid var(--interactive-normal);
+    flex-shrink: 0;
+}
+
+.colorwayCreator-colorPreviews > [class^="colorSwatch"],
+.colorwayCreator-colorPreviews > [class^="colorSwatch"] > [class^="swatch"] {
+    width: 50px;
+    height: 50px;
+    border: none;
+    position: relative;
+    border-radius: 0;
+}
+
+.colorwayCreator-colorPreviews > [class^="colorSwatch"] > [class^="swatch"] > svg {
+    display: none;
 }
 
 .colorwayCreator-colorInput {
@@ -414,13 +619,6 @@
     color: var(--brand-500);
 }
 
-.colorwayCreator-colorPreviews > [class^="colorSwatch"],
-.colorwayCreator-colorPreviews > [class^="colorSwatch"] > [class^="swatch"] {
-    width: 100%;
-    border: none;
-    position: relative;
-}
-
 .colorwaysPicker-colorLabel {
     position: absolute;
     top: 0;
@@ -431,10 +629,6 @@
     align-items: center;
     justify-content: center;
     pointer-events: none;
-}
-
-.colorwayCreator-colorPreviews > .colorSwatch-2UxEuG:has([fill="var(--primary-530)"]) > .colorwaysPicker-colorLabel {
-    color: var(--primary-530);
 }
 
 .colorwaySelector-noDisplay {
@@ -764,7 +958,7 @@
 
 .colorwayToolbox-listItemSVG:hover {
     border-color: var(--brand-500);
-    background-color: var(--brand-experiment-15a);
+    background-color: var(--brand-500-15a);
     color: var(--interactive-hover) !important;
 }
 
@@ -871,13 +1065,33 @@
     box-sizing: border-box;
 }
 
-.colorwayTextBox:hover {
+.colorwayTextBox::-webkit-outer-spin-button,
+.colorwayTextBox::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.theme-light .colorwayTextBox {
+    color: #000;
+    background-color: #f0f0f0;
+}
+
+.colorwayTextBox:hover,
+.colorwayTextBox:focus {
     background-color: #1a1a1a;
 }
 
+.theme-light .colorwayTextBox:hover,
+.theme-light .colorwayTextBox:focus {
+    background-color: #e6e6e6;
+}
+
 .colorwayTextBox:focus {
-    background-color: #1a1a1a;
     border-color: #a6a6a6;
+}
+
+.theme-light .colorwayTextBox:focus {
+    border-color: #595959;
 }
 
 .colorwaySelector-sources {
@@ -900,12 +1114,12 @@
 
 .theme-light .colorwaySelector-pill_selected {
     border-color: var(--brand-500) !important;
-    background-color: var(--brand-experiment-160) !important;
+    background-color: var(--brand-500-160) !important;
 }
 
 .theme-dark .colorwaySelector-pill_selected {
     border-color: var(--brand-500) !important;
-    background-color: var(--brand-experiment-15a) !important;
+    background-color: var(--brand-500-15a) !important;
 }
 
 .colorwaysTooltip-tooltipPreviewRow {
@@ -1173,42 +1387,44 @@
     height: 100%;
 }
 
-.colorwaysSettings-colorwaySource {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    padding: 8px;
-    gap: 5px;
-    border-radius: 8px;
-    box-sizing: border-box;
-    align-items: center;
-    background-color: #101010;
-}
-
 .discordColorway {
     display: flex;
     flex-direction: row;
     justify-content: start;
-    padding: 0 8px;
+    padding: 11px 8px;
     gap: 5px;
     border-radius: 6px;
     background-color: #101010;
     box-sizing: border-box;
-    min-height: 44px;
+    min-height: 56px;
     align-items: center;
     border: 1px solid transparent;
     transition: 0.2s ease;
     cursor: pointer;
 }
 
-.discordColorway:hover {
+.theme-light .discordColorway {
+    background-color: #f0f0f0;
+}
+
+.discordColorway:hover,
+.discordColorway:focus,
+.discordColorway[aria-checked="true"] {
     background-color: #2a2a2a;
-    filter: brightness(0.8);
+}
+
+.theme-light .discordColorway:hover,
+.theme-light .discordColorway:focus,
+.theme-light .discordColorway[aria-checked="true"] {
+    background-color: #d6d6d6;
 }
 
 .discordColorway[aria-checked="true"] {
-    background-color: #2a2a2a;
     border-color: #a6a6a6;
+}
+
+.theme-light .discordColorway[aria-checked="true"] {
+    border-color: #595959;
 }
 
 .colorwaysSettings-modalRoot {
@@ -1232,7 +1448,6 @@
     font-size: 16px;
 }
 
-.colorwaysModalSectionHeader,
 .colorwaysSettings-colorwaySourceLabel,
 .colorwaysSettings-colorwaySourceLabelHeader,
 .colorwaysSettings-colorwaySourceDesc {
@@ -1326,7 +1541,7 @@
 
 .colorwaysSettingsPage-wrapper .colorwayToolbox-listItem:hover {
     border-color: var(--brand-500);
-    background-color: var(--brand-experiment-15a);
+    background-color: var(--brand-500-15a);
     color: var(--interactive-hover);
 }
 
@@ -1335,7 +1550,7 @@
 }
 
 .colorwaysCreator-toolboxItm:hover {
-    background-color: var(--brand-experiment) !important;
+    background-color: var(--brand-500) !important;
 }
 
 .colorwayCreator-colorPreview_primary + .colorwayCreator-colorPreview_primary,
@@ -1377,8 +1592,13 @@
     flex: 0 0 auto;
     height: 15px;
     padding: 0 4px;
-    margin-top: 7.5px;
+    margin-top: 5px;
     border-radius: 16px;
+}
+
+.theme-light .colorways-badge {
+    background-color: #000;
+    color: #fff;
 }
 
 .hoverRoll {
@@ -1596,7 +1816,27 @@
     margin-right: auto;
     margin-top: 0 !important;
     margin-left: 0.5rem;
-    color: #dfdfdf;
+    color: var(--header-primary);
+    font-family: bootstrap-icons, var(--font-primary);
+    /* stylelint-disable-next-line value-keyword-case */
+    text-rendering: optimizeLegibility;
+}
+
+.colorwayLabelSubnote {
+    color: var(--header-secondary);
+    overflow: hidden overlay;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+    height: 23px;
+}
+
+.colorwayLabelContainer {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    margin-right: 8px;
+    width: 100%;
 }
 
 .colorwaySelectionCircle {
@@ -1672,6 +1912,7 @@
 .colorwaysMenuTabs {
     width: 100%;
     height: 24px;
+    box-sizing: content-box !important;
 }
 
 .colorwaysMenuTab {
@@ -1684,24 +1925,41 @@
     display: inline-block;
 }
 
+.theme-light .colorwaysMenuTab {
+    color: #000;
+}
+
 .colorwayInnerTab {
     box-sizing: border-box;
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    background-color: #090909;
     height: calc(100% - 50px);
-    padding: 8px;
+    padding: 16px;
+    overflow: hidden auto;
+}
+
+.colorwayInnerTab::-webkit-scrollbar {
+    width: 0;
 }
 
 .colorwaysMenuTab:hover {
     background-color: #1f1f1f;
 }
 
+.theme-light .colorwaysMenuTab:hover {
+    background-color: #e0e0e0;
+}
+
 .colorwaysMenuTab.active {
     color: #000;
     background-color: #fff;
+}
+
+.theme-light .colorwaysMenuTab.active {
+    color: #fff;
+    background-color: #000;
 }
 
 .colorwaysModalFooter {
@@ -1726,23 +1984,47 @@
     font-weight: normal;
     font-size: 1.25em;
     padding: 16px;
+    color: var(--text-normal);
 }
 
-.colorwaysModalSectionHeader {
-    font-size: 14px;
-    margin-bottom: 4px;
+.colorwaysModalFieldHeader {
+    margin-bottom: 8px;
     display: block;
+    font-family: var(--font-display);
+    font-size: 12px;
+    line-height: 1.3333;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    color: var(--header-secondary);
 }
 
-.colorwaysModalSectionError {
-    color: red;
+.colorwaysModalFieldHeader-error {
+    color: #FF0000;
+}
+
+.colorwaysModalFieldHeader-errorMsg {
+    font-size: 12px;
+    font-weight: 500;
     font-style: italic;
+    text-transform: none;
+}
+
+.colorwaysModalFieldHeader-errorMsgSeparator {
+    padding-left: 4px;
+    padding-right: 4px;
 }
 
 .colorwayIDCard {
     display: flex;
     flex-direction: column;
-    gap: 1em;
+    gap: 8px;
+    max-width: 500px;
+    width: 100%;
+}
+
+.colorwayIDCard > .discordColorway {
+    width: 100%;
 }
 
 .colorwaysContextMenu {
@@ -1753,6 +2035,7 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
+    position: relative;
     z-index: 5;
 }
 
@@ -1934,7 +2217,7 @@
 .colorwaysManagerActive {
     color: #fff;
     margin: auto;
-    font-weight: bold;
+    font-size: 20px;
     display: flex;
     justify-content: center;
     gap: 8px;
@@ -1945,7 +2228,7 @@
     height: 100%;
     width: 100%;
     backdrop-filter: blur(16px);
-    z-index: +5;
+    z-index: 1;
 }
 
 .colorwaysMenuHeader {
@@ -1971,4 +2254,156 @@
     height: 18px;
     width: 18px;
     margin-left: 8px;
+}
+
+.colorwaySelectorSpinner {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 32px;
+    color: #fff;
+    transform: scale(.8);
+}
+
+.colorwaySelectorSpinner-hidden {
+    display: none;
+}
+
+.colorwaysContextMenuColors {
+    display: flex;
+    justify-items: center;
+    align-items: center;
+    gap: 4px;
+    padding: 8px;
+}
+
+.colorwaysContextMenuColor {
+    border-radius: 8px;
+    min-width: 44px;
+    width: 100%;
+    height: 44px;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+.colorwaysContextMenuColor:hover {
+    filter: brightness(.8);
+}
+
+.colorwaysSettings-switchHandle {
+    transition: 0.2s;
+    display: block;
+    position: absolute;
+    width: 28px;
+    height: 18px;
+    margin: 3px;
+}
+
+.colorwaysFeatureIconContainer {
+    padding: 16px;
+    background-color: #0a0a0a;
+    border-radius: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    margin: 0 32px;
+}
+
+.colorwaysFeatureIconLabel {
+    text-align: center;
+    height: fit-content;
+    padding-top: 16px;
+}
+
+.colorwaysFeaturePresent {
+    display: grid;
+    grid-template-columns: repeat(3, 144px);
+    grid-template-rows: repeat(2, 1fr);
+    justify-content: space-evenly;
+    height: fit-content;
+    min-height: unset;
+    align-items: center;
+}
+
+.saturation-white {
+    background: -webkit-linear-gradient(to right, #fff, rgba(255,255,255,0));
+    background: linear-gradient(to right, #fff, rgba(255,255,255,0));
+}
+
+.saturation-black {
+    background: -webkit-linear-gradient(to top, #000, rgba(0,0,0,0));
+    background: linear-gradient(to top, #000, rgba(0,0,0,0));
+}
+
+.hue-horizontal {
+    background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0
+      33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+    background: -webkit-linear-gradient(to right, #f00 0%, #ff0
+      17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+}
+
+.hue-vertical {
+    background: linear-gradient(to top, #f00 0%, #ff0 17%, #0f0 33%,
+      #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+    background: -webkit-linear-gradient(to top, #f00 0%, #ff0 17%,
+      #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+}
+
+.colorwaysSaveAsSwatch {
+    width: 50px;
+    height: 50px;
+    border: none;
+    position: relative;
+    border-radius: 0;
+    cursor: pointer;
+}
+
+.colorwayCustomColorpicker {
+    display: flex;
+    flex-direction: column;
+    width: 220px;
+    padding: 16px;
+    gap: 16px;
+    border: 1px solid var(--border-subtle);
+    background-color: var(--background-primary);
+    border-radius: 4px;
+    box-shadow: var(--elevation-high);
+}
+
+.colorwayCustomColorpicker-suggestedColor {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid var(--primary-400);
+}
+
+.colorwayCustomColorpicker-suggestedColors {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.colorwayCustomColorpicker-inputContainer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.colorwayCustomColorpicker-eyeDropper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+}
+
+.colorwayCustomColorpicker-inputWrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }

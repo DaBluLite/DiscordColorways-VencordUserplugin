@@ -1,10 +1,17 @@
+/*
+ * Vencord, a Discord client mod
+ * Copyright (c) 2024 Vendicated and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 import { DataStore, FluxDispatcher, FluxEvents, openModal } from ".";
 import { ColorwayCSS } from "./colorwaysAPI";
-import MainModal from "./components/MainModal";
+import MainModal from "./components/Modals/MainModal";
 import { nullColorwayObj } from "./constants";
+import { contexts, setContext } from "./contexts";
 import { generateCss, getPreset, gradientBase, gradientPresetIds } from "./css";
 import { ColorwayObject } from "./types";
-import { colorToHex, getWsClientIdentity } from "./utils";
+import { getWsClientIdentity } from "./utils";
 
 export let wsOpen = false;
 export let boundKey: { [managerKey: string]: string; } | null = null;
@@ -18,13 +25,13 @@ export function sendColorway(obj: ColorwayObject) {
         active: obj,
         boundKey
     }));
-};
+}
 export function requestManagerRole() {
     socket?.send(JSON.stringify({
         type: "complication:manager-role:request",
         boundKey
     }));
-};
+}
 export function updateRemoteSources() {
     DataStore.getMany([
         "colorwaySourceFiles",
@@ -52,12 +59,12 @@ export function restartWS() {
 }
 
 export function isWSOpen() {
-    return Boolean(socket && (socket.readyState == socket.OPEN));
+    return Boolean(socket && (socket.readyState === socket.OPEN));
 }
 
-export function connect(doAutoconnect = true, autoconnectTimeout = 3000) {
-    if (socket && socket.readyState == socket.OPEN) return;
-    const ws: WebSocket = socket = new WebSocket('ws://localhost:6124');
+export function connect() {
+    if (socket && socket.readyState === socket.OPEN) return;
+    const ws: WebSocket = socket = new WebSocket("ws://localhost:6124");
 
     let hasErrored = false;
 
@@ -80,21 +87,21 @@ export function connect(doAutoconnect = true, autoconnectTimeout = 3000) {
             switch (type) {
                 case "change-colorway":
                     if (data.active.id == null) {
-                        DataStore.set("activeColorwayObject", nullColorwayObj);
+                        setContext("activeColorwayObject", nullColorwayObj);
                         ColorwayCSS.remove();
                         FluxDispatcher.dispatch({
                             type: "COLORWAYS_UPDATE_ACTIVE_COLORWAY" as FluxEvents,
                             active: nullColorwayObj
                         });
                     } else {
-                        DataStore.set("activeColorwayObject", data.active);
+                        setContext("activeColorwayObject", data.active);
                         FluxDispatcher.dispatch({
                             type: "COLORWAYS_UPDATE_ACTIVE_COLORWAY" as FluxEvents,
                             active: data.active
                         });
 
                         DataStore.get("colorwaysPreset").then((colorwaysPreset: string) => {
-                            if (colorwaysPreset == "default") {
+                            if (colorwaysPreset === "default") {
                                 ColorwayCSS.set(generateCss(
                                     data.active.colors,
                                     true,
@@ -105,7 +112,7 @@ export function connect(doAutoconnect = true, autoconnectTimeout = 3000) {
                             } else {
                                 if (gradientPresetIds.includes(colorwaysPreset)) {
                                     const css = Object.keys(data.active).includes("linearGradient")
-                                        ? gradientBase(colorToHex(data.active.colors.accent), true) + `:root:root {--custom-theme-background: linear-gradient(${data.active.linearGradient})}`
+                                        ? gradientBase(data.active.colors, true) + `:root:root {--custom-theme-background: linear-gradient(${data.active.linearGradient})}`
                                         : (getPreset(data.active.colors)[colorwaysPreset].preset as { full: string; }).full;
                                     ColorwayCSS.set(css);
                                 } else {
@@ -116,7 +123,7 @@ export function connect(doAutoconnect = true, autoconnectTimeout = 3000) {
                     }
                     return;
                 case "remove-colorway":
-                    DataStore.set("activeColorwayObject", nullColorwayObj);
+                    setContext("activeColorwayObject", nullColorwayObj);
                     ColorwayCSS.remove();
                     FluxDispatcher.dispatch({
                         type: "COLORWAYS_UPDATE_ACTIVE_COLORWAY" as FluxEvents,
@@ -127,7 +134,7 @@ export function connect(doAutoconnect = true, autoconnectTimeout = 3000) {
                     DataStore.get("colorwaysBoundManagers").then((boundManagers: { [managerKey: string]: string; }[]) => {
                         if (data.MID) {
                             const boundSearch = boundManagers.filter(boundManager => {
-                                if (Object.keys(boundManager)[0] == data.MID) return boundManager;
+                                if (Object.keys(boundManager)[0] === data.MID) return boundManager;
                             });
                             if (boundSearch.length) {
                                 boundKey = boundSearch[0];
@@ -215,8 +222,8 @@ export function connect(doAutoconnect = true, autoconnectTimeout = 3000) {
             isConnected: false
         });
 
-        if (doAutoconnect && (e.code !== 1 || hasErrored)) {
-            setTimeout(() => connect(doAutoconnect, autoconnectTimeout), autoconnectTimeout);
+        if (contexts.colorwaysManagerDoAutoconnect && (e.code !== 1 || hasErrored)) {
+            setTimeout(() => connect(), contexts.colorwaysManagerAutoconnectPeriod);
         }
     };
 

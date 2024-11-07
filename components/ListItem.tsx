@@ -1,3 +1,9 @@
+/*
+ * Vencord, a Discord client mod
+ * Copyright (c) 2024 Vendicated and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 import { useEffect, useRef, useState } from "..";
 import Tooltip from "./Tooltip";
 
@@ -14,9 +20,9 @@ export default function ({
     const btn = useRef(null);
 
     function onWindowUnfocused(e) {
-        e = e ? e : window.event;
+        e = e || window.event;
         var from = e.relatedTarget || e.toElement;
-        if (!from || from.nodeName == "HTML") {
+        if (!from || from.nodeName === "HTML") {
             setStatus("none");
         }
     }
@@ -33,15 +39,15 @@ export default function ({
             return <div ref={btn} className="colorwaysServerListItem">
                 {hasPill ? <div className="colorwaysServerListItemPill" data-status={status} /> : <></>}
                 {children({
-                    onMouseEnter: (e) => {
+                    onMouseEnter: e => {
                         onMouseEnter({ currentTarget: btn.current } as unknown as React.MouseEvent<HTMLDivElement, MouseEvent>);
                         status !== "active" ? setStatus("hover") : void 0;
                     },
-                    onMouseLeave: (e) => {
+                    onMouseLeave: e => {
                         onMouseLeave(e);
                         status !== "active" ? setStatus("none") : void 0;
                     },
-                    isActive: (stat) => setStatus(stat ? "active" : "none"),
+                    isActive: stat => setStatus(stat ? "active" : "none"),
                     onClick: onClick
                 })}
             </div>;
@@ -51,7 +57,7 @@ export default function ({
         {children({
             onMouseEnter: () => status !== "active" ? setStatus("hover") : void 0,
             onMouseLeave: () => status !== "active" ? setStatus("none") : void 0,
-            isActive: (stat) => setStatus(stat ? "active" : "none"),
+            isActive: stat => setStatus(stat ? "active" : "none"),
             onClick: () => { }
         })}
     </div>;

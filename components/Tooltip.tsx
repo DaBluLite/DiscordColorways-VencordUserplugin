@@ -1,4 +1,10 @@
-import { useRef, useState, useEffect } from "..";
+/*
+ * Vencord, a Discord client mod
+ * Copyright (c) 2024 Vendicated and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+import { useEffect, useRef, useState } from "..";
 
 export default function ({
     children,
@@ -19,7 +25,7 @@ export default function ({
                 case "right":
                     return {
                         x: currentTarget.getBoundingClientRect().x + currentTarget.offsetWidth + 8,
-                        y: currentTarget.getBoundingClientRect().y + (currentTarget.offsetHeight / 2) - ((tooltip.current as unknown as HTMLDivElement).offsetHeight / 2)
+                        y: (currentTarget.getBoundingClientRect().y + (currentTarget.offsetHeight / 2)) - ((tooltip.current as unknown as HTMLDivElement).offsetHeight / 2)
                     };
                 case "left":
                     return {
@@ -39,7 +45,7 @@ export default function ({
                 default:
                     return {
                         x: currentTarget.getBoundingClientRect().x + currentTarget.offsetWidth + 8,
-                        y: currentTarget.getBoundingClientRect().y + (currentTarget.offsetHeight / 2) - ((tooltip.current as unknown as HTMLDivElement).offsetHeight / 2)
+                        y: (currentTarget.getBoundingClientRect().y + (currentTarget.offsetHeight / 2)) - ((tooltip.current as unknown as HTMLDivElement).offsetHeight / 2)
                     };
             }
         })());
@@ -47,9 +53,9 @@ export default function ({
     }
 
     function onWindowUnfocused(e) {
-        e = e ? e : window.event;
+        e = e || window.event;
         var from = e.relatedTarget || e.toElement;
-        if (!from || from.nodeName == "HTML") {
+        if (!from || from.nodeName === "HTML") {
             setVisible(false);
         }
     }
@@ -63,7 +69,7 @@ export default function ({
 
     return <>
         {children({
-            onMouseEnter: (e) => showTooltip(e),
+            onMouseEnter: e => showTooltip(e),
             onMouseLeave: () => setVisible(false),
             onClick: () => setVisible(false)
         })}

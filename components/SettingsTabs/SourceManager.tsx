@@ -4,554 +4,453 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { DataStore, FocusLock, openModal, ReactNode, useEffect, useRef, useState } from "../../";
+import { DataStore, FluxDispatcher, FluxEvents, openModal, Toasts, useEffect, useState } from "../../";
 import { defaultColorwaySource } from "../../constants";
-import { Colorway, ModalProps, StoreItem } from "../../types";
-import { chooseFile, saveFile } from "../../utils";
+import { contexts, refreshSources, setContext } from "../../contexts";
+import { Colorway, SortOptions, StoreItem } from "../../types";
+import { chooseFile, Clipboard, saveFile } from "../../utils";
 import { updateRemoteSources } from "../../wsClient";
-import { CopyIcon, DeleteIcon, DownloadIcon, ImportIcon, PalleteIcon, PlusIcon } from "../Icons";
+import { CopyIcon, DeleteIcon, DownloadIcon, ImportIcon, PalleteIcon, PlusIcon, WirelessIcon } from "../Icons";
+import Modal from "../Modal";
+import NewStoreModal from "../Modals/NewStoreModal";
+import RightClickContextMenu from "../RightClickContextMenu";
 import Selector from "../Selector";
+import SourceManagerOptionsMenu from "../SourceManagerOptionsMenu";
+import Spinner from "../Spinner";
 import TabBar from "../TabBar";
-
-export function StoreNameModal({ modalProps, originalName = "", onFinish, conflicting = false }: { modalProps: ModalProps, originalName?: string, onFinish: (newName: string) => Promise<void>, conflicting?: boolean; }) {
-    const [error, setError] = useState<string>("");
-    const [newStoreName, setNewStoreName] = useState<string>(originalName);
-    const [theme, setTheme] = useState("discord");
-    const cont = useRef(null);
-
-    useEffect(() => {
-        async function load() {
-            setTheme(await DataStore.get("colorwaysPluginTheme") as string);
-        }
-        load();
-    }, []);
-
-    return <FocusLock containerRef={cont}>
-        <div ref={cont} className={`colorwaysModal ${modalProps.transitionState === 2 ? "closing" : ""} ${modalProps.transitionState === 4 ? "hidden" : ""}`} data-theme={theme}>
-            <h2 className="colorwaysModalHeader">
-                {conflicting ? "Duplicate Store Name" : "Give this store a name"}
-            </h2>
-            <div className="colorwaysModalContent">
-                {conflicting ? <span className="colorwaysModalSectionHeader">A store with the same name already exists. Please give a different name to the imported store:</span> : <></>}
-                <span className="colorwaysModalSectionHeader">Name: {error ? <span className="colorwaysModalSectionError">{error}</span> : <></>}</span>
-                <input type="text" className="colorwayTextBox" value={newStoreName} onChange={({ currentTarget: { value } }) => setNewStoreName(value)} style={{ marginBottom: "16px" }} />
-            </div>
-            <div className="colorwaysModalFooter">
-                <button
-                    className="colorwaysPillButton colorwaysPillButton-onSurface"
-                    style={{ marginLeft: 8 }}
-                    onClick={async () => {
-                        setError("");
-                        if ((await DataStore.get("customColorways")).map(store => store.name).includes(newStoreName)) {
-                            return setError("Error: Store name already exists");
-                        }
-                        onFinish(newStoreName);
-                        modalProps.onClose();
-                    }}
-                >
-                    Finish
-                </button>
-                <button
-                    className="colorwaysPillButton"
-                    style={{ marginLeft: 8 }}
-                    onClick={() => modalProps.onClose()}
-                >
-                    Cancel
-                </button>
-            </div>
-        </div>
-    </FocusLock>;
-}
-
-function AddOnlineStoreModal({ modalProps, onFinish }: { modalProps: ModalProps, onFinish: (name: string, url: string) => void; }) {
-    const [colorwaySourceName, setColorwaySourceName] = useState<string>("");
-    const [colorwaySourceURL, setColorwaySourceURL] = useState<string>("");
-    const [nameError, setNameError] = useState<string>("");
-    const [URLError, setURLError] = useState<string>("");
-    const [nameReadOnly, setNameReadOnly] = useState<boolean>(false);
-    const [theme, setTheme] = useState("discord");
-    const cont = useRef(null);
-
-    useEffect(() => {
-        async function load() {
-            setTheme(await DataStore.get("colorwaysPluginTheme") as string);
-        }
-        load();
-    }, []);
-    return <FocusLock containerRef={cont}>
-        <div ref={cont} className={`colorwaysModal ${modalProps.transitionState === 2 ? "closing" : ""} ${modalProps.transitionState === 4 ? "hidden" : ""}`} data-theme={theme}>
-            <h2 className="colorwaysModalHeader">
-                Add a source:
-            </h2>
-            <div className="colorwaysModalContent">
-                <span className="colorwaysModalSectionHeader">Name: {nameError ? <span className="colorwaysModalSectionError">{nameError}</span> : <></>}</span>
-                <input
-                    type="text"
-                    className="colorwayTextBox"
-                    placeholder="Enter a valid Name..."
-                    onInput={e => setColorwaySourceName(e.currentTarget.value)}
-                    value={colorwaySourceName}
-                    readOnly={nameReadOnly}
-                    disabled={nameReadOnly}
-                />
-                <span className="colorwaysModalSectionHeader" style={{ marginTop: "8px" }}>URL: {URLError ? <span className="colorwaysModalSectionError">{URLError}</span> : <></>}</span>
-                <input
-                    type="text"
-                    className="colorwayTextBox"
-                    placeholder="Enter a valid URL..."
-                    onChange={({ currentTarget: { value } }) => {
-                        setColorwaySourceURL(value);
-                        if (value === defaultColorwaySource) {
-                            setNameReadOnly(true);
-                            setColorwaySourceName("Project Colorway");
-                        }
-                    }}
-                    value={colorwaySourceURL}
-                    style={{ marginBottom: "16px" }}
-                />
-            </div>
-            <div className="colorwaysModalFooter">
-                <button
-                    className="colorwaysPillButton colorwaysPillButton-onSurface"
-                    onClick={async () => {
-                        const sourcesArr: { name: string, url: string; }[] = (await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[]);
-                        if (!colorwaySourceName) {
-                            setNameError("Error: Please enter a valid name");
-                        }
-                        else if (!colorwaySourceURL) {
-                            setURLError("Error: Please enter a valid URL");
-                        }
-                        else if (sourcesArr.map(s => s.name).includes(colorwaySourceName)) {
-                            setNameError("Error: An online source with that name already exists");
-                        }
-                        else if (sourcesArr.map(s => s.url).includes(colorwaySourceURL)) {
-                            setURLError("Error: An online source with that url already exists");
-                        } else {
-                            onFinish(colorwaySourceName, colorwaySourceURL);
-                            modalProps.onClose();
-                        }
-                    }}
-                >
-                    Finish
-                </button>
-                <button
-                    className="colorwaysPillButton"
-                    onClick={() => modalProps.onClose()}
-                >
-                    Cancel
-                </button>
-            </div>
-        </div>
-    </FocusLock>;
-}
 
 export default function ({
     hasTheme = false
 }: {
     hasTheme?: boolean;
 }) {
-    const items = [
-        {
-            name: "Online",
-            component: OnlineTab
-        },
-        {
-            name: "Offline",
-            component: OfflineTab
-        },
-        {
-            name: "Discover",
-            component: StoreTab
+    const [theme, setTheme] = useState(contexts.colorwaysPluginTheme);
+    const [active, setActive] = useState("Installed");
+    const [colorwaySourceFiles, setColorwaySourceFiles] = useState<{ name: string, url: string; }[]>(contexts.colorwaySourceFiles);
+    const [customColorwayStores, setCustomColorwayStores] = useState<{ name: string, colorways: Colorway[]; }[]>(contexts.customColorways);
+    const [storeObject, setStoreObject] = useState<StoreItem[]>([]);
+    const [searchValue, setSearchValue] = useState<string>("");
+    const [searchValuee, setSearchValuee] = useState<string>("");
+    const [sortBy, setSortBy] = useState<SortOptions>(SortOptions.NAME_AZ);
+    const [layout, setLayout] = useState<"normal" | "compact">("normal");
+    const [showSpinner, setShowSpinner] = useState<boolean>(false);
+
+    function setOnline(obj: { name: string, url: string; }, action: "add" | "remove") {
+        if (action === "add") {
+            const srcList = [...colorwaySourceFiles, obj];
+            setColorwaySourceFiles(srcList);
+            setContext("colorwaySourceFiles", srcList);
         }
-    ];
-
-    const [theme, setTheme] = useState("discord");
-    const [active, setActive] = useState(items[0].name);
-
-    useEffect(() => {
-        async function load() {
-            setTheme(await DataStore.get("colorwaysPluginTheme") as string);
+        if (action === "remove") {
+            const srcList = colorwaySourceFiles.filter(src => src.name !== obj.name && src.url !== obj.url);
+            setColorwaySourceFiles(srcList);
+            setContext("colorwaySourceFiles", srcList);
         }
-        load();
-    }, []);
-
-    function Container({ children }: { children: ReactNode; }) {
-        if (hasTheme) return <div className="colorwaysModalTab" data-theme={theme}>{children}</div>;
-        else return <div className="colorwaysModalTab">{children}</div>;
+        refreshSources();
+        updateRemoteSources();
     }
 
-    return <Container>
-        <TabBar active={active} container={({ children }) => <div className="colorwaysPageHeader">{children}</div>} onChange={setActive} items={items} />
-        {items.map(item => {
-            const Component = item.component;
-            return active === item.name ? <Component /> : null;
-        })}
-    </Container >;
-}
-
-function OfflineTab() {
-    const [customColorwayStores, setCustomColorwayStores] = useState<{ name: string, colorways: Colorway[]; }[]>([]);
-    useEffect(() => {
-        (async function () {
-            setCustomColorwayStores(await DataStore.get("customColorways") as { name: string, colorways: Colorway[]; }[]);
-            updateRemoteSources();
-        })();
-    }, []);
-    return <div className="colorwayInnerTab">
-        <div style={{
-            display: "flex",
-            gap: "8px"
-        }}>
-            <button
-                className="colorwaysPillButton"
-                style={{ flexShrink: "0" }}
-                onClick={async () => {
-                    const file = await chooseFile("application/json");
-                    if (!file) return;
-
-                    const reader = new FileReader();
-                    reader.onload = async () => {
-                        try {
-                            if ((await DataStore.get("customColorways") as { name: string, colorways: Colorway[]; }[]).map(store => store.name).includes(JSON.parse(reader.result as string).name)) {
-                                openModal(props => <StoreNameModal conflicting modalProps={props} originalName={JSON.parse(reader.result as string).name} onFinish={async e => {
-                                    await DataStore.set("customColorways", [...await DataStore.get("customColorways"), { name: e, colorways: JSON.parse(reader.result as string).colorways }]);
-                                    setCustomColorwayStores(await DataStore.get("customColorways") as { name: string, colorways: Colorway[]; }[]);
-                                    updateRemoteSources();
-                                }} />);
-                            } else {
-                                await DataStore.set("customColorways", [...await DataStore.get("customColorways"), JSON.parse(reader.result as string)]);
-                                setCustomColorwayStores(await DataStore.get("customColorways") as { name: string, colorways: Colorway[]; }[]);
-                                updateRemoteSources();
-                            }
-                        } catch (err) {
-                            console.error("DiscordColorways: " + err);
-                        }
-                    };
-                    reader.readAsText(file);
-                    updateRemoteSources();
-                }}
-            >
-                <ImportIcon width={14} height={14} />
-                Import...
-            </button>
-            <button
-                className="colorwaysPillButton"
-                style={{ flexShrink: "0" }}
-                onClick={() => {
-                    openModal(props => <StoreNameModal modalProps={props} onFinish={async e => {
-                        await DataStore.set("customColorways", [...await DataStore.get("customColorways"), { name: e, colorways: [] }]);
-                        setCustomColorwayStores(await DataStore.get("customColorways") as { name: string, colorways: Colorway[]; }[]);
-                        props.onClose();
-                        updateRemoteSources();
-                    }} />);
-                }}>
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    aria-hidden="true"
-                    role="img"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24">
-                    <path
-                        fill="currentColor"
-                        d="M20 11.1111H12.8889V4H11.1111V11.1111H4V12.8889H11.1111V20H12.8889V12.8889H20V11.1111Z"
-                    />
-                </svg>
-                New...
-            </button>
-        </div>
-        <div className="colorwaysSettings-sourceScroller">
-            {getComputedStyle(document.body).getPropertyValue("--os-accent-color") ? <div className={"colorwaysSettings-colorwaySource"} style={{ flexDirection: "column", padding: "16px", alignItems: "start" }}>
-                <div style={{ alignItems: "center", width: "100%", height: "30px", display: "flex" }}>
-                    <span className="colorwaysSettings-colorwaySourceLabel">OS Accent Color{" "}
-                        <div className="colorways-badge">Built-In</div>
-                    </span>
-                </div>
-            </div> : <></>}
-            {customColorwayStores.map(({ name: customColorwaySourceName, colorways: offlineStoreColorways }) => <div className={"colorwaysSettings-colorwaySource"} style={{ flexDirection: "column", padding: "16px", alignItems: "start" }}>
-                <span className="colorwaysSettings-colorwaySourceLabel">
-                    {customColorwaySourceName}
-                </span>
-                <div style={{ marginLeft: "auto", gap: "8px", display: "flex" }}>
-                    <button
-                        className="colorwaysPillButton colorwaysPillButton-onSurface"
-                        onClick={async () => {
-                            saveFile(new File([JSON.stringify({ "name": customColorwaySourceName, "colorways": [...offlineStoreColorways] })], `${customColorwaySourceName.replaceAll(" ", "-").toLowerCase()}.colorways.json`, { type: "application/json" }));
-                        }}
-                    >
-                        <DownloadIcon width={14} height={14} /> Export as...
-                    </button>
-                    <button
-                        className="colorwaysPillButton colorwaysPillButton-onSurface"
-                        onClick={async () => {
-                            var sourcesArr: { name: string, colorways: Colorway[]; }[] = [];
-                            const customColorwaySources = await DataStore.get("customColorways");
-                            customColorwaySources.map((source: { name: string, colorways: Colorway[]; }) => {
-                                if (source.name !== customColorwaySourceName) {
-                                    sourcesArr.push(source);
-                                }
-                            });
-                            DataStore.set("customColorways", sourcesArr);
-                            setCustomColorwayStores(sourcesArr);
-                            updateRemoteSources();
-                        }}
-                    >
-                        <DeleteIcon width={20} height={20} /> Remove
-                    </button>
-                </div>
-            </div>
-            )}
-        </div>
-    </div>;
-}
-
-function OnlineTab() {
-    const [colorwaySourceFiles, setColorwaySourceFiles] = useState<{ name: string, url: string; }[]>([]);
-    useEffect(() => {
-        (async function () {
-            setColorwaySourceFiles(await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[]);
-            updateRemoteSources();
-        })();
-    }, []);
-    return <div className="colorwayInnerTab">
-        <div style={{
-            display: "flex",
-            gap: "8px"
-        }}>
-            <button
-                className="colorwaysPillButton"
-                style={{ flexShrink: "0" }}
-                onClick={() => {
-                    openModal(props => <AddOnlineStoreModal modalProps={props} onFinish={async (name, url) => {
-                        await DataStore.set("colorwaySourceFiles", [...await DataStore.get("colorwaySourceFiles"), { name: name, url: url }]);
-                        setColorwaySourceFiles([...await DataStore.get("colorwaySourceFiles"), { name: name, url: url }]);
-                        updateRemoteSources();
-                    }} />);
-                }}>
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    aria-hidden="true"
-                    role="img"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24">
-                    <path
-                        fill="currentColor"
-                        d="M20 11.1111H12.8889V4H11.1111V11.1111H4V12.8889H11.1111V20H12.8889V12.8889H20V11.1111Z"
-                    />
-                </svg>
-                Add...
-            </button>
-        </div>
-        <div className="colorwaysSettings-sourceScroller">
-            {!colorwaySourceFiles.length && <div className={"colorwaysSettings-colorwaySource"} style={{ flexDirection: "column", padding: "16px", alignItems: "start" }} onClick={async () => {
-                DataStore.set("colorwaySourceFiles", [{ name: "Project Colorway", url: defaultColorwaySource }, ...(await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[]).filter(i => i.name !== "Project Colorway")]);
-                setColorwaySourceFiles([{ name: "Project Colorway", url: defaultColorwaySource }, ...(await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[]).filter(i => i.name !== "Project Colorway")]);
-            }}>
-                <PlusIcon width={24} height={24} />
-                <span className="colorwaysSettings-colorwaySourceLabel">
-                    Add Project Colorway Source
-                </span>
-            </div>}
-            {colorwaySourceFiles.map((colorwaySourceFile: { name: string, url: string; }, i: number) => <div className={"colorwaysSettings-colorwaySource"} style={{ flexDirection: "column", padding: "16px", alignItems: "start" }}>
-                <div className="hoverRoll">
-                    <span className="colorwaysSettings-colorwaySourceLabel hoverRoll_normal">
-                        {colorwaySourceFile.name} {colorwaySourceFile.url === defaultColorwaySource && <div className="colorways-badge">Built-In</div>} {colorwaySourceFile.url === "https://raw.githubusercontent.com/DaBluLite/ProjectColorway/master/index.json" && <div className="colorways-badge">Built-In | Outdated</div>}
-                    </span>
-                    <span className="colorwaysSettings-colorwaySourceLabel hoverRoll_hovered">
-                        {colorwaySourceFile.url}
-                    </span>
-                </div>
-                <div style={{ marginLeft: "auto", gap: "8px", display: "flex" }}>
-                    <button
-                        className="colorwaysPillButton colorwaysPillButton-onSurface"
-                        onClick={() => { navigator.clipboard.writeText(colorwaySourceFile.url); }}
-                    >
-                        <CopyIcon width={14} height={14} /> Copy URL
-                    </button>
-                    {colorwaySourceFile.url === "https://raw.githubusercontent.com/DaBluLite/ProjectColorway/master/index.json" && <button
-                        className="colorwaysPillButton colorwaysPillButton-onSurface"
-                        onClick={async () => {
-                            DataStore.set("colorwaySourceFiles", [{ name: "Project Colorway", url: defaultColorwaySource }, ...(await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[]).filter(i => i.name !== "Project Colorway")]);
-                            setColorwaySourceFiles([{ name: "Project Colorway", url: defaultColorwaySource }, ...(await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[]).filter(i => i.name !== "Project Colorway")]);
-                        }}
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            x="0px"
-                            y="0px"
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                        >
-                            <rect
-                                y="0"
-                                fill="none"
-                                width="24"
-                                height="24"
-                            />
-                            <path
-                                d="M6.351,6.351C7.824,4.871,9.828,4,12,4c4.411,0,8,3.589,8,8h2c0-5.515-4.486-10-10-10 C9.285,2,6.779,3.089,4.938,4.938L3,3v6h6L6.351,6.351z"
-                            />
-                            <path
-                                d="M17.649,17.649C16.176,19.129,14.173,20,12,20c-4.411,0-8-3.589-8-8H2c0,5.515,4.486,10,10,10 c2.716,0,5.221-1.089,7.062-2.938L21,21v-6h-6L17.649,17.649z"
-                            />
-                        </svg> Update source...
-                    </button>}
-                    {(colorwaySourceFile.url !== defaultColorwaySource && colorwaySourceFile.url !== "https://raw.githubusercontent.com/DaBluLite/ProjectColorway/master/index.json")
-                        && <>
-                            <button
-                                className="colorwaysPillButton colorwaysPillButton-onSurface"
-                                onClick={async () => {
-                                    openModal(props => <StoreNameModal modalProps={props} originalName={colorwaySourceFile.name} onFinish={async e => {
-                                        const res = await fetch(colorwaySourceFile.url);
-                                        const data = await res.json();
-                                        DataStore.set("customColorways", [...await DataStore.get("customColorways"), { name: e, colorways: data.colorways || [] }]);
-                                        updateRemoteSources();
-                                    }} />);
-                                }}
-                            >
-                                <DownloadIcon width={14} height={14} /> Download...
-                            </button>
-                            <button
-                                className="colorwaysPillButton colorwaysPillButton-onSurface"
-                                onClick={async () => {
-                                    DataStore.set("colorwaySourceFiles", (await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[]).filter((src, ii) => ii !== i));
-                                    setColorwaySourceFiles((await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[]).filter((src, ii) => ii !== i));
-                                    updateRemoteSources();
-                                }}
-                            >
-                                <DeleteIcon width={14} height={14} /> Remove
-                            </button>
-                        </>}
-                </div>
-            </div>
-            )}
-        </div>
-    </div>;
-}
-
-function StoreTab() {
-    const [storeObject, setStoreObject] = useState<StoreItem[]>([]);
-    const [colorwaySourceFiles, setColorwaySourceFiles] = useState<{ name: string, url: string; }[]>([]);
-    const [searchValue, setSearchValue] = useState<string>("");
-    const [theme, setTheme] = useState("discord");
-
-    useEffect(() => {
-        async function load() {
-            setTheme(await DataStore.get("colorwaysPluginTheme") as string);
+    function setOffline(obj: { name: string, colorways: Colorway[]; }, action: "add" | "remove") {
+        if (action === "add") {
+            const srcList = [...customColorwayStores, obj];
+            setCustomColorwayStores(srcList);
+            setContext("customColorways", srcList);
         }
-        load();
-    }, []);
+        if (action === "remove") {
+            const srcList = customColorwayStores.filter(src => src.name !== obj.name);
+            setCustomColorwayStores(srcList);
+            setContext("customColorways", srcList);
+        }
+        updateRemoteSources();
+    }
 
     useEffect(() => {
-        if (!searchValue) {
-            (async function () {
-                const res: Response = await fetch("https://dablulite.vercel.app/");
-                const data = await res.json();
-                setStoreObject(data.sources);
-                setColorwaySourceFiles(await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[]);
-            })();
-        }
+        updateRemoteSources();
+
+        (async function () {
+            const res: Response = await fetch("https://dablulite.vercel.app/?q=" + encodeURI(searchValue));
+            const data = await res.json();
+            setStoreObject(data.sources);
+        })();
+
+        FluxDispatcher.subscribe("COLORWAYS_UPDATE_THEME" as FluxEvents, ({ theme }) => setTheme(theme));
+
+        return () => {
+            FluxDispatcher.unsubscribe("COLORWAYS_UPDATE_THEME" as FluxEvents, ({ theme }) => setTheme(theme));
+        };
     }, []);
-    return <div className="colorwayInnerTab"><div style={{ display: "flex", marginBottom: "8px" }}>
-        <input
-            type="text"
-            className="colorwayTextBox"
-            placeholder="Search for sources..."
-            value={searchValue}
-            onChange={e => setSearchValue(e.currentTarget.value)}
-        />
-        <button
-            className="colorwaysPillButton"
-            style={{ marginLeft: "8px", marginTop: "auto", marginBottom: "auto" }}
-            onClick={async function () {
-                const res: Response = await fetch("https://dablulite.vercel.app/");
-                const data = await res.json();
-                setStoreObject(data.sources);
-                setColorwaySourceFiles(await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[]);
-            }}
-        >
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                x="0px"
-                y="0px"
-                width="14"
-                height="14"
-                style={{ boxSizing: "content-box", flexShrink: 0 }}
-                viewBox="0 0 24 24"
-                fill="currentColor"
-            >
-                <rect
-                    y="0"
-                    fill="none"
-                    width="24"
-                    height="24"
-                />
-                <path
-                    d="M6.351,6.351C7.824,4.871,9.828,4,12,4c4.411,0,8,3.589,8,8h2c0-5.515-4.486-10-10-10 C9.285,2,6.779,3.089,4.938,4.938L3,3v6h6L6.351,6.351z"
-                />
-                <path
-                    d="M17.649,17.649C16.176,19.129,14.173,20,12,20c-4.411,0-8-3.589-8-8H2c0,5.515,4.486,10,10,10 c2.716,0,5.221-1.089,7.062-2.938L21,21v-6h-6L17.649,17.649z"
-                />
-            </svg>
-            Refresh
-        </button>
-    </div>
-        <div className="colorwaysSettings-sourceScroller">
-            {storeObject.map((item: StoreItem) =>
-                item.name.toLowerCase().includes(searchValue.toLowerCase()) ? <div className={"colorwaysSettings-colorwaySource"} style={{ flexDirection: "column", padding: "16px", alignItems: "start" }}>
-                    <div style={{ gap: ".5rem", display: "flex", marginBottom: "8px", flexDirection: "column" }}>
-                        <span className="colorwaysSettings-colorwaySourceLabelHeader">
-                            {item.name}
-                        </span>
-                        <span className="colorwaysSettings-colorwaySourceDesc">
-                            {item.description}
-                        </span>
-                        <span className="colorwaysSettings-colorwaySourceDesc" style={{ opacity: ".8" }}>
-                            by {item.authorGh}
-                        </span>
-                    </div>
-                    <div style={{ gap: "8px", alignItems: "center", width: "100%", display: "flex" }}>
-                        <a role="link" target="_blank" href={"https://github.com/" + item.authorGh}>
-                            <img src="/assets/6a853b4c87fce386cbfef4a2efbacb09.svg" alt="GitHub" />
-                        </a>
+
+    return <div className="colorwaysModalTab" data-theme={hasTheme ? theme : "discord"}>
+        <TabBar active={active} container={({ children }) => <div className="colorwaysPageHeader">{children}</div>} onChange={setActive} items={[
+            {
+                name: "Installed",
+                component: () => <div className="colorwayInnerTab">
+                    <input
+                        type="text"
+                        className="colorwayTextBox"
+                        placeholder="Search for sources..."
+                        value={searchValuee}
+                        autoFocus
+                        onInput={({ currentTarget: { value } }) => setSearchValuee(value)}
+                    />
+                    <Spinner className={`colorwaySelectorSpinner${!showSpinner ? " colorwaySelectorSpinner-hidden" : ""}`} />
+                    <div style={{
+                        display: "flex",
+                        gap: "8px"
+                    }}>
                         <button
-                            className="colorwaysPillButton colorwaysPillButton-onSurface"
-                            style={{ marginLeft: "auto" }}
+                            className="colorwaysPillButton colorwaysPillButton-primary"
+                            style={{ flexShrink: "0" }}
+                            onClick={() => {
+                                openModal(props => <NewStoreModal
+                                    modalProps={props}
+                                    onOnline={async ({ name, url }) => setOnline({ name, url }, "add")}
+                                    onOffline={async ({ name }) => setOffline({ name, colorways: [] }, "add")}
+                                />);
+                            }}>
+                            <PlusIcon width={14} height={14} />
+                            New...
+                        </button>
+                        <SourceManagerOptionsMenu
+                            sort={sortBy}
+                            layout={layout}
+                            onSortChange={newSort => {
+                                setSortBy(newSort);
+                            }}
+                            onLayout={l => {
+                                setLayout(l);
+                            }}
+                        />
+                        <button
+                            className="colorwaysPillButton colorwaysPillButton-primary"
+                            style={{ flexShrink: "0" }}
                             onClick={async () => {
-                                if (colorwaySourceFiles.map(source => source.name).includes(item.name)) {
-                                    const sourcesArr: { name: string, url: string; }[] = colorwaySourceFiles.filter(source => source.name !== item.name);
-                                    DataStore.set("colorwaySourceFiles", sourcesArr);
-                                    setColorwaySourceFiles(sourcesArr);
-                                } else {
-                                    const sourcesArr: { name: string, url: string; }[] = [...colorwaySourceFiles, { name: item.name, url: item.url }];
-                                    DataStore.set("colorwaySourceFiles", sourcesArr);
-                                    setColorwaySourceFiles(sourcesArr);
-                                }
+                                const file = await chooseFile("application/json");
+                                if (!file) return;
+
+                                const reader = new FileReader();
+                                reader.onload = () => {
+                                    try {
+                                        openModal(props => <NewStoreModal
+                                            modalProps={props}
+                                            offlineOnly
+                                            name={JSON.parse(reader.result as string).name}
+                                            onOffline={async ({ name }) => {
+                                                setOffline({ name, colorways: JSON.parse(reader.result as string).colorways }, "add");
+                                            }} />);
+                                    } catch (err) {
+                                        console.error("DiscordColorways: " + err);
+                                    }
+                                };
+                                reader.readAsText(file);
                             }}
                         >
-                            {colorwaySourceFiles.map(source => source.name).includes(item.name) ? <><DeleteIcon width={14} height={14} /> Remove</> : <><DownloadIcon width={14} height={14} /> Add to Sources</>}
+                            <ImportIcon width={14} height={14} />
+                            Import Offline...
                         </button>
-                        <button
-                            className="colorwaysPillButton colorwaysPillButton-onSurface"
-                            onClick={async () => {
-                                openModal(props => <div className={`colorwaysModal ${props.transitionState === 2 ? "closing" : ""} ${props.transitionState === 4 ? "hidden" : ""}`} data-theme={theme}>
-                                    <h2 className="colorwaysModalHeader">
-                                        Previewing colorways for {item.name}
-                                    </h2>
-                                    <div className="colorwaysModalContent colorwaysModalContent-sourcePreview">
-                                        <Selector settings={{ selectorType: "preview", previewSource: item.url }} />
+                    </div>
+                    <div className="colorways-selector" data-layout={layout}>
+                        {getComputedStyle(document.body).getPropertyValue("--os-accent-color") ? <div
+                            className="discordColorway"
+                            style={{ cursor: "default" }}
+                            id="colorwaySource-auto"
+                        >
+                            <div className="colorwayLabelContainer">
+                                <span className="colorwayLabel">OS Accent Color</span>
+                                <span className="colorwayLabel colorwayLabelSubnote colorwaysNote"><div className="colorways-badge">Offline • Built-In</div> • Auto Colorway</span>
+                            </div>
+                        </div> : <></>}
+                        {(![
+                            ...colorwaySourceFiles.map(src => ({ ...src, type: "online" })) as { name: string, url: string, type: "online"; }[],
+                            ...customColorwayStores.map(src => ({ ...src, type: "offline" })) as { name: string, colorways: Colorway[], type: "offline"; }[]
+                        ].length && !getComputedStyle(document.body).getPropertyValue("--os-accent-color")) ? <div
+                            className="discordColorway"
+                            id="colorwaySource-missingSource"
+                            onClick={async () => setOnline({ name: "Project Colorway", url: defaultColorwaySource }, "add")}>
+                            <WirelessIcon width={30} height={30} style={{ color: "var(--interactive-active)" }} />
+                            <div className="colorwayLabelContainer">
+                                <span className="colorwayLabel">It's quite emty in here.</span>
+                                <span className="colorwayLabel colorwayLabelSubnote colorwaysNote">Click here to add the Project Colorway source</span>
+                            </div>
+                        </div> : null}
+                        {[
+                            ...colorwaySourceFiles.map(src => ({ ...src, type: "online" })) as { name: string, url: string, type: "online"; }[],
+                            ...customColorwayStores.map(src => ({ ...src, type: "offline" })) as { name: string, colorways: Colorway[], type: "offline"; }[]
+                        ]
+                            .filter(src => src.name.toLowerCase().includes(searchValuee.toLowerCase()))
+                            .sort((a, b) => {
+                                switch (sortBy) {
+                                    case SortOptions.NAME_AZ:
+                                        return a.name.localeCompare(b.name);
+                                    case SortOptions.NAME_ZA:
+                                        return b.name.localeCompare(a.name);
+                                    default:
+                                        return a.name.localeCompare(b.name);
+                                }
+                            })
+                            .map((src: { name: string, url?: string, colorways?: Colorway[], type: "online" | "offline"; }, i: number) => <RightClickContextMenu menu={<>
+                                {src.type === "online" ? <><button onClick={() => {
+                                    Clipboard.copy(src.url as string);
+                                    Toasts.show({
+                                        message: "Copied URL Successfully",
+                                        type: 1,
+                                        id: "copy-url-notify",
+                                    });
+                                }} className="colorwaysContextMenuItm">
+                                    Copy URL
+                                    <CopyIcon width={16} height={16} style={{
+                                        marginLeft: "8px"
+                                    }} />
+                                </button>
+                                    <button
+                                        className="colorwaysContextMenuItm"
+                                        onClick={async () => {
+                                            openModal(props => <NewStoreModal
+                                                modalProps={props}
+                                                offlineOnly
+                                                name={src.name}
+                                                onOffline={async ({ name }) => {
+                                                    const res = await fetch(src.url as string);
+                                                    const data = await res.json();
+                                                    setOffline({ name, colorways: data.colorways }, "add");
+                                                }} />);
+                                        }}
+                                    >
+                                        Download...
+                                        <DownloadIcon width={14} height={14} />
+                                    </button></> : <button
+                                        className="colorwaysContextMenuItm"
+                                        onClick={async () => {
+                                            saveFile(new File([JSON.stringify({ "name": src.name, "colorways": [...src.colorways as Colorway[]] })], `${src.name.replaceAll(" ", "-").toLowerCase()}.colorways.json`, { type: "application/json" }));
+                                        }}
+                                    >
+                                    Export as...
+                                    <DownloadIcon width={14} height={14} />
+                                </button>}
+                                <button
+                                    className="colorwaysContextMenuItm colorwaysContextMenuItm-danger"
+                                    onClick={async () => {
+                                        openModal(props => <Modal
+                                            modalProps={props}
+                                            title="Remove Source"
+                                            onFinish={async ({ closeModal }) => {
+                                                if (src.type === "online") {
+                                                    setOnline({ name: src.name, url: src.url as string }, "remove");
+                                                } else {
+                                                    setOffline({ name: src.name, colorways: [] }, "remove");
+                                                }
+                                                closeModal();
+                                            }}
+                                            confirmMsg="Delete"
+                                            type="danger"
+                                        >
+                                            Are you sure you want to remove this source? This cannot be undone!
+                                        </Modal>);
+                                    }}
+                                >
+                                    Remove
+                                    <DeleteIcon width={14} height={14} />
+                                </button>
+                            </>}>
+                                {({ onContextMenu }) => <div
+                                    className="discordColorway"
+                                    style={{ cursor: "default" }}
+                                    id={"colorwaySource" + src.name}
+                                    onContextMenu={onContextMenu}>
+                                    <div className="colorwayLabelContainer">
+                                        <span className="colorwayLabel">{src.name}</span>
+                                        {src.type === "online" ? <span className="colorwayLabel colorwayLabelSubnote colorwaysNote"><div className="colorways-badge">Online{src.url as string === defaultColorwaySource ? " • Built-In" : ""}</div> • on {src.url as string}</span> : <span className="colorwayLabel colorwayLabelSubnote colorwaysNote"><div className="colorways-badge">Offline</div> • {(src.colorways as Colorway[]).length} colorways</span>}
                                     </div>
-                                </div>);
+                                    <div style={{ marginRight: "auto" }} />
+                                    <button
+                                        className="colorwaysPillButton colorwaysPillButton-danger"
+                                        onClick={async () => {
+                                            openModal(props => <Modal
+                                                modalProps={props}
+                                                title="Remove Source"
+                                                onFinish={async ({ closeModal }) => {
+                                                    if (src.type === "online") {
+                                                        setOnline({ name: src.name, url: src.url as string }, "remove");
+                                                    } else {
+                                                        setOffline({ name: src.name, colorways: [] }, "remove");
+                                                    }
+                                                    closeModal();
+                                                }}
+                                                confirmMsg="Delete"
+                                                type="danger"
+                                            >
+                                                Are you sure you want to remove this source? This cannot be undone!
+                                            </Modal>);
+                                        }}
+                                    >
+                                        <DeleteIcon width={16} height={16} />
+                                    </button>
+                                </div>}
+                            </RightClickContextMenu>
+                            )}
+                    </div>
+                </div>
+            },
+            {
+                name: "Discover",
+                component: () => <div className="colorwayInnerTab">
+                    <div style={{ display: "flex", marginBottom: "8px" }}>
+                        <input
+                            type="text"
+                            className="colorwayTextBox"
+                            placeholder="Search for sources..."
+                            value={searchValue}
+                            onChange={e => setSearchValue(e.currentTarget.value)}
+                        />
+                        <button
+                            className="colorwaysPillButton colorwaysPillButton-primary"
+                            style={{ marginLeft: "8px", marginTop: "auto", marginBottom: "auto" }}
+                            onClick={async function () {
+                                const res: Response = await fetch("https://dablulite.vercel.app/");
+                                const data = await res.json();
+                                setStoreObject(data.sources);
+                                setColorwaySourceFiles(await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[]);
+                                setContext("colorwaySourceFiles", await DataStore.get("colorwaySourceFiles") as { name: string, url: string; }[]);
                             }}
                         >
-                            <PalleteIcon width={14} height={14} />
-                            Preview
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                x="0px"
+                                y="0px"
+                                width="14"
+                                height="14"
+                                style={{ boxSizing: "content-box", flexShrink: 0 }}
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                            >
+                                <rect
+                                    y="0"
+                                    fill="none"
+                                    width="24"
+                                    height="24"
+                                />
+                                <path
+                                    d="M6.351,6.351C7.824,4.871,9.828,4,12,4c4.411,0,8,3.589,8,8h2c0-5.515-4.486-10-10-10 C9.285,2,6.779,3.089,4.938,4.938L3,3v6h6L6.351,6.351z"
+                                />
+                                <path
+                                    d="M17.649,17.649C16.176,19.129,14.173,20,12,20c-4.411,0-8-3.589-8-8H2c0,5.515,4.486,10,10,10 c2.716,0,5.221-1.089,7.062-2.938L21,21v-6h-6L17.649,17.649z"
+                                />
+                            </svg>
+                            Refresh
                         </button>
                     </div>
-                </div> : <></>
-            )}
-        </div></div>;
+                    <div className="colorways-selector">
+                        {storeObject.map((item: StoreItem) =>
+                            item.name.toLowerCase().includes(searchValue.toLowerCase()) ? <RightClickContextMenu menu={<>
+                                <button onClick={() => {
+                                    Clipboard.copy(item.url);
+                                    Toasts.show({
+                                        message: "Copied URL Successfully",
+                                        type: 1,
+                                        id: "copy-url-notify",
+                                    });
+                                }} className="colorwaysContextMenuItm">
+                                    Copy URL
+                                    <CopyIcon width={16} height={16} style={{
+                                        marginLeft: "8px"
+                                    }} />
+                                </button>
+                                <button
+                                    className="colorwaysContextMenuItm"
+                                    onClick={() => {
+                                        openModal(props => <Modal
+                                            modalProps={props}
+                                            title={"Previewing colorways for " + item.name}
+                                            onFinish={() => { }}
+                                            confirmMsg="Done"
+                                        >
+                                            <div className="colorwayInnerTab" style={{ flexGrow: "1" }}>
+                                                <Selector settings={{ selectorType: "preview", previewSource: item.url }} />
+                                            </div>
+                                        </Modal>);
+                                    }}
+                                >
+                                    Preview
+                                    <PalleteIcon width={16} height={16} style={{
+                                        marginLeft: "8px"
+                                    }} />
+                                </button>
+                                <button
+                                    className={`colorwaysContextMenuItm${colorwaySourceFiles.map(source => source.name).includes(item.name) ? " colorwaysContextMenuItm-danger" : ""}`}
+                                    onClick={async () => {
+                                        if (colorwaySourceFiles.map(source => source.name).includes(item.name)) {
+                                            openModal(props => <Modal
+                                                modalProps={props}
+                                                title="Remove Source"
+                                                onFinish={async ({ closeModal }) => {
+                                                    setOnline({ name: item.name, url: item.url as string }, "remove");
+                                                    closeModal();
+                                                }}
+                                                confirmMsg="Delete"
+                                                type="danger"
+                                            >
+                                                Are you sure you want to remove this source? This cannot be undone!
+                                            </Modal>);
+                                        } else {
+                                            setOnline({ name: item.name, url: item.url as string }, "add");
+                                        }
+                                    }}
+                                >
+                                    {colorwaySourceFiles.map(source => source.name).includes(item.name) ? <>
+                                        Remove
+                                        <DeleteIcon width={16} height={16} style={{
+                                            marginLeft: "8px"
+                                        }} />
+                                    </> : <>
+                                        Add Source
+                                        <DownloadIcon width={16} height={16} style={{
+                                            marginLeft: "8px"
+                                        }} />
+                                    </>}
+                                </button>
+                            </>}>
+                                {({ onContextMenu }) => <div
+                                    className="discordColorway"
+                                    style={{ cursor: "default" }}
+                                    id={"colorwaySource" + item.name}
+                                    onContextMenu={onContextMenu}>
+                                    <div className="colorwayLabelContainer">
+                                        <span className="colorwayLabel">{item.name}</span>
+                                        <span className="colorwayLabel colorwayLabelSubnote colorwaysNote">{item.description} • by {item.authorGh}</span>
+                                    </div>
+                                    <div style={{ marginRight: "auto" }} />
+                                    <button
+                                        className={`colorwaysPillButton ${colorwaySourceFiles.map(source => source.name).includes(item.name) ? "colorwaysPillButton-danger" : "colorwaysPillButton-secondary"}`}
+                                        onClick={async () => {
+                                            if (colorwaySourceFiles.map(source => source.name).includes(item.name)) {
+                                                openModal(props => <Modal
+                                                    modalProps={props}
+                                                    title="Remove Source"
+                                                    onFinish={async ({ closeModal }) => {
+                                                        setOnline({ name: item.name, url: item.url as string }, "remove");
+                                                        closeModal();
+                                                    }}
+                                                    confirmMsg="Delete"
+                                                    type="danger"
+                                                >
+                                                    Are you sure you want to remove this source? This cannot be undone!
+                                                </Modal>);
+                                            } else {
+                                                setOnline({ name: item.name, url: item.url as string }, "add");
+                                            }
+                                        }}
+                                    >
+                                        {colorwaySourceFiles.map(source => source.name).includes(item.name) ? <DeleteIcon width={16} height={16} /> : <DownloadIcon width={16} height={16} />}
+                                    </button>
+                                    <a role="link" className="colorwaysPillButton colorwaysPillButton-secondary" target="_blank" href={"https://github.com/" + item.authorGh}>
+                                        <img src="/assets/6a853b4c87fce386cbfef4a2efbacb09.svg" width={16} height={16} alt="GitHub" />
+                                    </a>
+                                </div>}
+                            </RightClickContextMenu> : <></>
+                        )}
+                    </div>
+                </div>
+            }
+        ]} />
+    </div>;
 }

@@ -20,11 +20,11 @@ import type { PropsWithChildren } from "react";
 
 import { classes } from "../utils";
 
-interface BaseIconProps extends IconProps {
+export interface BaseIconProps extends IconProps {
     viewBox: string;
 }
 
-type IconProps = JSX.IntrinsicElements["svg"];
+export type IconProps = JSX.IntrinsicElements["svg"];
 
 function Icon({ height = 24, width = 24, className, children, viewBox, ...svgProps }: PropsWithChildren<BaseIconProps>) {
     return (
@@ -58,6 +58,29 @@ export function LinkIcon({ height = 24, width = 24, className }: IconProps) {
             </g>
         </Icon>
     );
+}
+
+export function WirelessIcon({ height = 24, width = 24, className, ...svgProps }: IconProps) {
+    return <Icon
+        width={width}
+        height={height}
+        viewBox="0 0 24 24"
+        {...svgProps}
+    >
+        <path fill="currentColor" d="M2 3a1 1 0 0 1 1-1 19 19 0 0 1 19 19 1 1 0 1 1-2 0A17 17 0 0 0 3 4a1 1 0 0 1-1-1Z" />
+        <path fill="currentColor" d="M2 8a1 1 0 0 1 1-1 14 14 0 0 1 14 14 1 1 0 1 1-2 0A12 12 0 0 0 3 9a1 1 0 0 1-1-1Z" />
+        <path fill="currentColor" d="M3 12a1 1 0 1 0 0 2 7 7 0 0 1 7 7 1 1 0 1 0 2 0 9 9 0 0 0-9-9ZM2 17.83c0-.46.37-.83.83-.83C5.13 17 7 18.87 7 21.17c0 .46-.37.83-.83.83H3a1 1 0 0 1-1-1v-3.17Z" />
+    </Icon>;
+}
+
+export function EyeDropperIcon({ height = 24, width = 24, className, ...svgProps }: IconProps) {
+    return <Icon
+        width={width}
+        height={height}
+        viewBox="0 0 24 24"
+        {...svgProps}>
+        <path fill="currentColor" d="m16.25 2.25-2 2-.63-.63a3 3 0 0 0-4.24 0l-.85.85c-.3.3-.3.77 0 1.06l9.94 9.94c.3.3.77.3 1.06 0l.85-.85a3 3 0 0 0 0-4.24l-.63-.63 2-2a3.89 3.89 0 1 0-5.5-5.5ZM9.3 9.7a1 1 0 0 1 1.4 0l3.6 3.6a1 1 0 0 1 0 1.4l-4.84 4.84a5 5 0 0 1-2.7 1.39c-.47.08-.86.42-1.1.83a2.5 2.5 0 1 1-3.42-3.42c.41-.24.75-.63.83-1.1a5 5 0 0 1 1.4-2.7L9.28 9.7Z" />
+    </Icon>;
 }
 
 /**
@@ -561,15 +584,14 @@ export function CaretIcon(props: IconProps) {
 }
 
 export function CogIcon(props: IconProps) {
+    props.style ??= {};
+    props.style.contentVisibility = "visible";
     return (
         <Icon
             {...props}
             viewBox="0 0 24 24"
             className={classes(props.className, "dc-cog-icon")}
             preserveAspectRatio="xMidYMid meet"
-            style={{
-                contentVisibility: "visible"
-            }}
         >
             <path fill="currentColor" fill-rule="evenodd" d="M10.56 1.1c-.46.05-.7.53-.64.98.18 1.16-.19 2.2-.98 2.53-.8.33-1.79-.15-2.49-1.1-.27-.36-.78-.52-1.14-.24-.77.59-1.45 1.27-2.04 2.04-.28.36-.12.87.24 1.14.96.7 1.43 1.7 1.1 2.49-.33.8-1.37 1.16-2.53.98-.45-.07-.93.18-.99.64a11.1 11.1 0 0 0 0 2.88c.06.46.54.7.99.64 1.16-.18 2.2.19 2.53.98.33.8-.14 1.79-1.1 2.49-.36.27-.52.78-.24 1.14.59.77 1.27 1.45 2.04 2.04.36.28.87.12 1.14-.24.7-.95 1.7-1.43 2.49-1.1.8.33 1.16 1.37.98 2.53-.07.45.18.93.64.99a11.1 11.1 0 0 0 2.88 0c.46-.06.7-.54.64-.99-.18-1.16.19-2.2.98-2.53.8-.33 1.79.14 2.49 1.1.27.36.78.52 1.14.24.77-.59 1.45-1.27 2.04-2.04.28-.36.12-.87-.24-1.14-.96-.7-1.43-1.7-1.1-2.49.33-.8 1.37-1.16 2.53-.98.45.07.93-.18.99-.64a11.1 11.1 0 0 0 0-2.88c-.06-.46-.54-.7-.99-.64-1.16.18-2.2-.19-2.53-.98-.33-.8.14-1.79 1.1-2.49.36-.27.52-.78.24-1.14a11.07 11.07 0 0 0-2.04-2.04c-.36-.28-.87-.12-1.14.24-.7.96-1.7 1.43-2.49 1.1-.8-.33-1.16-1.37-.98-2.53.07-.45-.18-.93-.64-.99a11.1 11.1 0 0 0-2.88 0ZM16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" clip-rule="evenodd" />
         </Icon>

@@ -308,10 +308,39 @@ export const knownThemeVars = {
 };
 
 export const mainColors = [
-    { name: "accent", title: "Accent", var: "--brand-experiment" },
+    { name: "accent", title: "Accent", var: "--brand-500" },
     { name: "primary", title: "Primary", var: "--background-primary" },
     { name: "secondary", title: "Secondary", var: "--background-secondary" },
     { name: "tertiary", title: "Tertiary", var: "--background-tertiary" }
 ];
 
-export const nullColorwayObj: ColorwayObject = { id: null, css: null, sourceType: null, source: null };
+export const nullColorwayObj: ColorwayObject = { id: null, sourceType: null, source: null, colors: { accent: "", primary: "", secondary: "", tertiary: "" } };
+
+export const colorProps = [
+    {
+        name: "Accent",
+        id: "accent"
+    },
+    {
+        name: "Primary",
+        id: "primary"
+    },
+    {
+        name: "Secondary",
+        id: "secondary"
+    },
+    {
+        name: "Tertiary",
+        id: "tertiary"
+    }
+];
+
+export const colorPickerProps = {
+    suggestedColors: [
+        "#313338",
+        "#2b2d31",
+        "#1e1f22",
+        "#5865f2",
+    ],
+    showEyeDropper: true
+};

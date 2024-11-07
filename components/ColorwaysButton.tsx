@@ -5,20 +5,20 @@
  */
 
 import { DataStore, FluxDispatcher, FluxEvents, openModal, PluginProps, useEffect, useState } from "..";
+import { contexts } from "../contexts";
 import { getAutoPresets } from "../css";
 import { ColorwayObject } from "../types";
 import { PalleteIcon } from "./Icons";
 import ListItem from "./ListItem";
-import Selector from "./MainModal";
+import MainModal from "./Modals/MainModal";
 
 export default function () {
-    const [activeColorway, setActiveColorway] = useState<string>("None");
-    const [visibility, setVisibility] = useState<boolean>(true);
-    const [autoPreset, setAutoPreset] = useState<string>("hueRotation");
+    const [activeColorway, setActiveColorway] = useState<ColorwayObject>(contexts.activeColorwayObject);
+    const [visibility, setVisibility] = useState<boolean>(false);
+    const [autoPreset, setAutoPreset] = useState<string>(contexts.activeAutoPreset);
     useEffect(() => {
         (async function () {
             setVisibility(await DataStore.get("showColorwaysButton") as boolean);
-            setAutoPreset(await DataStore.get("activeAutoPreset") as string);
         })();
 
         FluxDispatcher.subscribe("COLORWAYS_UPDATE_BUTTON_VISIBILITY" as FluxEvents, ({ isVisible }) => setVisibility(isVisible));
@@ -32,9 +32,9 @@ export default function () {
         hasPill
         tooltip={
             <>
-                <span>Colorways</span>
-                <span style={{ color: "var(--text-muted)", fontWeight: 500, fontSize: 12 }}>{"Active Colorway: " + activeColorway}</span>
-                {activeColorway === "Auto" ? <span style={{ color: "var(--text-muted)", fontWeight: 500, fontSize: 12 }}>{"Auto Colorway Preset: " + (autoPreset ? getAutoPresets()[autoPreset].name : "None")}</span> : <></>}
+                <span>Discord Colorways</span>
+                <span style={{ color: "var(--text-muted)", fontWeight: 500, fontSize: 12 }}>{"Active Colorway: " + (activeColorway.id || "None")}</span>
+                {(activeColorway.id === "Auto" && activeColorway.sourceType === "auto") ? <span style={{ color: "var(--text-muted)", fontWeight: 500, fontSize: 12 }}>{"Auto Colorway Preset: " + (autoPreset ? getAutoPresets()[autoPreset].name : "None")}</span> : <></>}
             </>
         }>
         {({ onMouseEnter, onMouseLeave, isActive, onClick }) => {
@@ -42,8 +42,8 @@ export default function () {
                 className="ColorwaySelectorBtn"
                 onMouseEnter={async e => {
                     onMouseEnter(e);
-                    setActiveColorway((await DataStore.get("activeColorwayObject") as ColorwayObject).id || "None");
-                    setAutoPreset(await DataStore.get("activeAutoPreset") as string);
+                    setActiveColorway(contexts.activeColorwayObject);
+                    setAutoPreset(contexts.activeAutoPreset);
                 }}
                 onMouseLeave={e => {
                     onMouseLeave(e);
@@ -51,7 +51,7 @@ export default function () {
                 onClick={e => {
                     onClick(e);
                     isActive(false);
-                    openModal((props: any) => <Selector modalProps={props} />);
+                    openModal((props: any) => <MainModal modalProps={props} />);
                 }}
             >
                 <PalleteIcon />
