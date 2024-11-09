@@ -9,7 +9,7 @@ import { contexts } from "../../contexts";
 import { ModalProps } from "../../types";
 import { Clipboard } from "../../utils";
 import { boundKey as bk, hasManagerRole, requestManagerRole, restartWS, updateRemoteSources, wsOpen } from "../../wsClient";
-import { CaretIcon, CogIcon, IconProps, PalleteIcon, WirelessIcon } from "../Icons";
+import { CaretIcon, CogIcon, PalleteIcon, WirelessIcon } from "../Icons";
 import RightClickContextMenu from "../RightClickContextMenu";
 import Selector from "../Selector";
 import SettingsPage from "../SettingsTabs/SettingsPage";
@@ -40,13 +40,13 @@ function MainModalSidebar({ onTabChange }: { onTabChange: (tab: tabs) => void; }
 
     return <>
         <div className="colorwaySelectorSidebar">
-            <SidebarTab
-                activeTab={activeTab}
-                onSelect={() => setExpanded(!expanded)}
-                Icon={(props: React.PropsWithChildren<IconProps>) => <CaretIcon {...props} style={expanded ? { transform: "rotate(90deg)" } : {}} />}
-                id="expand_sidebar"
-                expanded={expanded}
-            />
+            <div
+                className="colorwaysPillButton colorwaysPillButton-md colorwaysPillButton-icon"
+                onClick={() => setExpanded(!expanded)}
+                style={{ width: "fit-content", borderColor: "transparent" }}
+            >
+                <CaretIcon width={18} height={18} style={expanded ? { transform: "rotate(90deg)" } : {}} />
+            </div>
             <SidebarTab
                 activeTab={activeTab}
                 onSelect={id => {
@@ -161,12 +161,14 @@ export default function ({
 
     return (
         <FocusLock containerRef={cont}>
-            <div ref={cont} className={`colorwaySelectorModal${forceVR ? " visual-refresh" : ""} ${modalProps.transitionState === 2 ? "closing" : ""} ${modalProps.transitionState === 4 ? "hidden" : ""}`} data-theme={theme}>
-                <MainModalSidebar onTabChange={setActiveTab} />
-                <div className="colorwayModalContent">
-                    {activeTab === "selector" && <div className="colorwayInnerTab" style={{ height: "100%" }}><Selector hasTheme /></div>}
-                    {activeTab === "sources" && <SourceManager hasTheme />}
-                    {activeTab === "settings" && <SettingsPage hasTheme />}
+            <div style={{ display: "contents" }} className={forceVR ? "visual-refresh" : ""}>
+                <div ref={cont} className={`colorwaySelectorModal ${modalProps.transitionState === 2 ? "closing" : ""} ${modalProps.transitionState === 4 ? "hidden" : ""}`} data-theme={theme}>
+                    <MainModalSidebar onTabChange={setActiveTab} />
+                    <div className="colorwayModalContent">
+                        {activeTab === "selector" && <div className="colorwayInnerTab" style={{ height: "100%" }}><Selector hasTheme /></div>}
+                        {activeTab === "sources" && <SourceManager hasTheme />}
+                        {activeTab === "settings" && <SettingsPage hasTheme />}
+                    </div>
                 </div>
             </div>
         </FocusLock>

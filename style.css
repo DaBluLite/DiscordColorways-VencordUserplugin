@@ -97,11 +97,11 @@
 .colorwayModal {
     width: 90% !important;
     height: 90% !important;
-    border-radius: 12px;
-    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    box-shadow: 0px 0px 6px 0px #0a0a0c;
     display: flex;
     flex-direction: row;
-    background-color: #090909;
+    background-color: #0a0a0c;
     margin: 0 auto;
     pointer-events: all;
     position: relative;
@@ -274,7 +274,7 @@
 
 .colorwaysPillButton {
     padding: 4px 12px;
-    border-radius: 16px;
+    border-radius: 6px;
     background-color: transparent;
     transition: 0.2s ease;
     cursor: pointer;
@@ -288,6 +288,14 @@
     box-sizing: border-box;
 }
 
+.colorwaysPillButton:hover {
+    background-color: hsl(var(--white-500-hsl)/5%);
+}
+
+.colorwaysPillButton:active {
+    background-color: hsl(var(--white-500-hsl)/1%);
+}
+
 .colorwaysPillButton-outlined {
     transition: color var(--custom-button-transition-duration)ease,background-color var(--custom-button-transition-duration)ease,border-color var(--custom-button-transition-duration)ease !important;
     border-width: 1px !important;
@@ -296,7 +304,7 @@
 
 .colorwaysPillButton:not(.colorwaysPillButton-outlined).colorwaysPillButton-primary {
     color: #fff;
-    background-color: #101010;
+    background-color: #202028;
 }
 
 .theme-light .colorwaysPillButton:not(.colorwaysPillButton-outlined).colorwaysPillButton-primary {
@@ -306,7 +314,7 @@
 
 .colorwaysPillButton:not(.colorwaysPillButton-outlined).colorwaysPillButton-secondary {
     color: #fff;
-    background-color: #1a1a1a;
+    background-color: #141416;
 }
 
 .theme-light.colorwaysPillButton:not(.colorwaysPillButton-outlined).colorwaysPillButton-secondary {
@@ -326,12 +334,12 @@
 
 .colorwaysPillButton.colorwaysPillButton-outlined.colorwaysPillButton-primary {
     color: #fff;
-    border-color: #101010;
+    border-color: #202028;
 }
 
 .colorwaysPillButton.colorwaysPillButton-outlined.colorwaysPillButton-secondary {
     color: #fff;
-    border-color: #1a1a1a;
+    border-color: #141416;
 }
 
 .colorwaysPillButton.colorwaysPillButton-outlined.colorwaysPillButton-danger {
@@ -350,13 +358,14 @@
 
 .colorwaysPillButton.colorwaysPillButton-icon {
     padding: 4px;
+    min-width: var(--custom-button-button-sm-height);
 }
 
 .colorwaysPillButton.colorwaysPillButton-primary:hover,
 .colorwaysPillButton.colorwaysPillButton-secondary:hover,
 .theme-light .colorwaysPillButton.colorwaysPillButton-brand:hover {
-    background-color: #2a2a2a;
-    border-color: #2a2a2a;
+    background-color: #2a2a2f;
+    border-color: #2a2a2f;
     color: #fff;
 }
 
@@ -407,8 +416,8 @@
 }
 
 .theme-light .colorwaysPillButton.colorwaysPillButton-brand:hover {
-    background-color: #2a2a2a;
-    border-color: #2a2a2a;
+    background-color: #2a2a2f;
+    border-color: #2a2a2f;
     color: #fff;
 }
 
@@ -442,8 +451,24 @@
     min-height: var(--custom-button-button-tn-height);
 }
 
+.colorwaysPillButton-md.colorwaysPillButton-icon {
+    min-width: var(--custom-button-button-md-height);
+}
+
+.colorwaysPillButton-lg.colorwaysPillButton-icon {
+    min-width: var(--custom-button-button-lg-height);
+}
+
+.colorwaysPillButton-xl.colorwaysPillButton-icon {
+    min-width: var(--custom-button-button-xl-height);
+}
+
+.colorwaysPillButton-tn.colorwaysPillButton-icon {
+    min-width: var(--custom-button-button-tn-height);
+}
+
 .colorwaySelectorSidebar-tab:hover {
-    background-color: #2a2a2a;
+    background-color: #2a2a2f;
 }
 
 .colorwaySelectorSidebar-tab.active {
@@ -452,7 +477,7 @@
 }
 
 .theme-light .colorwaySelectorSidebar-tab:hover {
-    background-color: #d6d6d6; /* #2a2a2a */
+    background-color: #d6d6d6; /* #2a2a2f */
 }
 
 .theme-light .colorwaySelectorSidebar-tab.active {
@@ -467,7 +492,7 @@
     padding-left: 16px;
     box-sizing: border-box;
     border-radius: 8px;
-    background-color: #101010;
+    background-color: #101012;
     display: flex;
     gap: 16px;
     align-items: center;
@@ -481,7 +506,7 @@
 }
 
 .colorwaySelectorSidebar {
-    background-color: #101010;
+    background-color: #101012;
     color: #fff;
     box-sizing: border-box;
     height: calc(100% - 16px);
@@ -1056,7 +1081,7 @@
 .colorwayTextBox {
     width: 100%;
     border-radius: 6px;
-    background-color: #101010;
+    background-color: #101012;
     transition: 0.2s ease;
     border: 1px solid transparent;
     padding-left: 12px;
@@ -1077,20 +1102,24 @@
 }
 
 .colorwayTextBox:hover,
-.colorwayTextBox:focus {
+.colorwayTextBox:focus,
+.colorwayTextBox:has(:focus) {
     background-color: #1a1a1a;
 }
 
 .theme-light .colorwayTextBox:hover,
-.theme-light .colorwayTextBox:focus {
+.theme-light .colorwayTextBox:focus,
+.theme-light .colorwayTextBox:has(:focus) {
     background-color: #e6e6e6;
 }
 
-.colorwayTextBox:focus {
+.colorwayTextBox:focus,
+.colorwayTextBox:has(:focus) {
     border-color: #a6a6a6;
 }
 
-.theme-light .colorwayTextBox:focus {
+.theme-light .colorwayTextBox:focus,
+.theme-light .colorwayTextBox:has(:focus) {
     border-color: #595959;
 }
 
@@ -1394,7 +1423,7 @@
     padding: 11px 8px;
     gap: 5px;
     border-radius: 6px;
-    background-color: #101010;
+    background-color: #101012;
     box-sizing: border-box;
     min-height: 56px;
     align-items: center;
@@ -1410,7 +1439,7 @@
 .discordColorway:hover,
 .discordColorway:focus,
 .discordColorway[aria-checked="true"] {
-    background-color: #2a2a2a;
+    background-color: #2a2a2f;
 }
 
 .theme-light .discordColorway:hover,
@@ -1425,10 +1454,6 @@
 
 .theme-light .discordColorway[aria-checked="true"] {
     border-color: #595959;
-}
-
-.colorwaysSettings-modalRoot {
-    min-width: 520px;
 }
 
 .colorwaysSettings-colorwaySourceLabel {
@@ -1692,7 +1717,7 @@
 }
 
 .colorwaysCreator-setting:hover {
-    background-color: #2a2a2a;
+    background-color: #2a2a2f;
 }
 
 .dc-colorway-selector::before {
@@ -1766,7 +1791,7 @@
     padding: 20px;
     border: 1px solid #a6a6a6f0;
     border-radius: 8px;
-    background-color: #090909;
+    background-color: #0a0a0c;
     display: flex;
 }
 
@@ -1963,16 +1988,14 @@
 }
 
 .colorwaysModalFooter {
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-    border-bottom-left-radius: 16px;
-    border-bottom-right-radius: 16px;
-    padding: 8px;
+    border-radius: 6px;
+    padding: 4px;
+    margin: 4px;
     display: flex;
     flex-direction: row-reverse;
-    background-color: #0a0a0a;
+    background-color: #101012;
     width: calc(100% - 16px);
-    gap: 8px;
+    gap: 4px;
 }
 
 .colorwaysModalFooter > .colorwaysPillButton {
@@ -2052,15 +2075,21 @@
     min-height: 32px;
     padding: 6px 8px;
     border-radius: 6px;
-    background-color: #101010;
+    background-color: #101012;
     border: 1px solid transparent;
     transition: 0.2s ease;
     cursor: pointer;
     color: #dfdfdf;
 }
 
+.colorwaysContextMenuSeparator {
+    box-sizing: border-box;
+    margin: 4px;
+    border-bottom: 1px solid var(--background-modifier-accent);
+}
+
 .colorwaysContextMenuItm:hover {
-    background-color: #2a2a2a;
+    background-color: #2a2a2f;
     border-color: #a6a6a6;
 }
 
@@ -2129,7 +2158,7 @@
     transform: translateX(-20px);
     opacity: 0;
     border: 1px solid #a6a6a6f0;
-    background-color: #090909;
+    background-color: #0a0a0c;
     transition:
         transform 0.2s ease,
         opacity 0.2s ease;
@@ -2257,9 +2286,6 @@
 }
 
 .colorwaySelectorSpinner {
-    position: absolute;
-    top: 20px;
-    right: 20px;
     width: 32px;
     color: #fff;
     transform: scale(.8);
@@ -2267,6 +2293,23 @@
 
 .colorwaySelectorSpinner-hidden {
     display: none;
+}
+
+.colorwaySelectorHeader {
+    display: flex !important;
+    gap: 4px !important;
+    padding: 4px !important;
+    height: fit-content !important;
+}
+
+.colorwaySelectorHeader .colorwaysPillButton {
+    flex: 0 0 auto;
+}
+
+.colorwaySelectorHeader .colorwayTextBox {
+    height: 32px !important;
+    background-color: transparent !important;
+    border: none !important;
 }
 
 .colorwaysContextMenuColors {

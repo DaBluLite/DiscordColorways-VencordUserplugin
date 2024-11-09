@@ -15,12 +15,12 @@ import { Clipboard, colorToHex, compareColorwayObjects, saveFile, stringToHex } 
 import { hasManagerRole, requestManagerRole, sendColorway, updateRemoteSources, wsOpen } from "../wsClient";
 import { CodeIcon, DeleteIcon, DownloadIcon, IDIcon, PencilIcon, PlusIcon, WirelessIcon } from "./Icons";
 import Modal from "./Modal";
-import AutoColorwaySelector from "./Modals/AutoColorwaySelector";
 import SaveColorwayAsModal from "./Modals/SaveColorwayAsModal";
+import Radio from "./Radio";
 import ReloadButton from "./ReloadButton";
 import RightClickContextMenu from "./RightClickContextMenu";
-import SelectorOptionsMenu from "./SelectorOptionsMenu";
 import Spinner from "./Spinner";
+import StaticOptionsMenu from "./StaticOptionsMenu";
 
 export default function ({
     settings = { selectorType: "normal" },
@@ -41,7 +41,6 @@ export default function ({
     const [wsConnected, setWsConnected] = useState(wsOpen);
     const [theme, setTheme] = useState(contexts.colorwaysPluginTheme);
     const [isManager, setManager] = useState<boolean>(hasManagerRole);
-    const [autoPreset, setAutoPreset] = useState(contexts.activeAutoPreset);
     const [layout, setLayout] = useState<"normal" | "compact">("normal");
     const [usageMetrics, setUsageMetrics] = useState<(ColorwayObject & { uses: number; })[]>(contexts.colorwayUsageMetrics);
 
@@ -83,6 +82,8 @@ export default function ({
             updateRemoteSources();
         }
     }
+
+    const layouts = [{ name: "Normal", id: "normal" }, { name: "Compact", id: "compact" }];
 
     const filters = [
         {
@@ -126,16 +127,16 @@ export default function ({
     }, []);
 
     return <><div className="colorwayModal-selectorHeader" data-theme={hasTheme ? theme : "discord"}>
-        <input
-            type="text"
-            className="colorwayTextBox"
-            placeholder="Search for Colorways..."
-            value={searchValue}
-            autoFocus
-            onInput={({ currentTarget: { value } }) => setSearchValue(value)}
-        />
-        <Spinner className={`colorwaySelectorSpinner${!showSpinner ? " colorwaySelectorSpinner-hidden" : ""}`} />
-        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+        <div className="colorwaySelectorHeader colorwayTextBox">
+            <input
+                type="text"
+                className="colorwayTextBox"
+                placeholder="Search for Colorways..."
+                value={searchValue}
+                autoFocus
+                onInput={({ currentTarget: { value } }) => setSearchValue(value)}
+            />
+            <Spinner className={`colorwaySelectorSpinner${!showSpinner ? " colorwaySelectorSpinner-hidden" : ""}`} />
             <ReloadButton
                 onClick={async data => setColorwayData(data)}
                 setShowSpinner={setShowSpinner}
@@ -155,58 +156,128 @@ export default function ({
                 <PlusIcon width={14} height={14} style={{ boxSizing: "content-box" }} />
                 Add...
             </button>
-            <SelectorOptionsMenu
-                sort={sortBy}
-                layout={layout}
-                onSortChange={newSort => {
-                    setSortBy(newSort);
-                }}
-                source={filters.find(filter => filter.id === visibleSources) as { name: string, id: string, sources: SourceObject[]; }}
-                sources={filters}
-                onSourceChange={sourceId => {
-                    setVisibleSources(sourceId);
-                }}
-                onLayout={l => {
-                    setLayout(l);
-                }}
-                onAutoPreset={activeAutoPreset => {
-                    setAutoPreset(activeAutoPreset);
-                    setContext("activeAutoPreset", activeAutoPreset);
-                    if (activeColorwayObject.id === "Auto" && activeColorwayObject.sourceType === "auto") {
-                        const { colors } = getAutoPresets(colorToHex(getComputedStyle(document.body).getPropertyValue("--os-accent-color")).slice(0, 6))[activeAutoPreset];
-                        const newObj: ColorwayObject = {
-                            id: "Auto",
-                            sourceType: "auto",
-                            source: "OS Accent Color",
-                            colors: colors
-                        };
-                        if (isManager) {
-                            sendColorway(newObj);
-                        } else {
-                            setContext("activeColorwayObject", newObj);
-                            setActiveColorwayObject(newObj);
-
-                            DataStore.get("colorwaysPreset").then((colorwaysPreset: string) => {
-                                if (colorwaysPreset === "default") {
-                                    ColorwayCSS.set(generateCss(
-                                        colors,
-                                        true,
-                                        true,
-                                        undefined,
-                                        newObj.id as string
-                                    ));
-                                } else {
-                                    if (gradientPresetIds.includes(colorwaysPreset)) {
-                                        ColorwayCSS.set((getPreset(colors)[colorwaysPreset].preset as { full: string; }).full);
-                                    } else {
-                                        ColorwayCSS.set(getPreset(colors)[colorwaysPreset].preset as string);
-                                    }
-                                }
-                            });
+            <StaticOptionsMenu
+                menu={<>
+                    <button onClick={() => setSortBy(9)} className="colorwaysContextMenuItm">
+                        Most Used
+                        <Radio checked={sortBy === 9} style={{
+                            marginLeft: "8px"
+                        }} />
+                    </button>
+                    <button onClick={() => setSortBy(10)} className="colorwaysContextMenuItm">
+                        Least Used
+                        <Radio checked={sortBy === 10} style={{
+                            marginLeft: "8px"
+                        }} />
+                    </button>
+                    <button onClick={() => setSortBy(1)} className="colorwaysContextMenuItm">
+                        Name (A-Z)
+                        <Radio checked={sortBy === 1} style={{
+                            marginLeft: "8px"
+                        }} />
+                    </button>
+                    <button onClick={() => setSortBy(2)} className="colorwaysContextMenuItm">
+                        Name (Z-A)
+                        <Radio checked={sortBy === 2} style={{
+                            marginLeft: "8px"
+                        }} />
+                    </button>
+                    <button onClick={() => setSortBy(3)} className="colorwaysContextMenuItm">
+                        Source (A-Z)
+                        <Radio checked={sortBy === 3} style={{
+                            marginLeft: "8px"
+                        }} />
+                    </button>
+                    <button onClick={() => setSortBy(4)} className="colorwaysContextMenuItm">
+                        Source (Z-A)
+                        <Radio checked={sortBy === 4} style={{
+                            marginLeft: "8px"
+                        }} />
+                    </button>
+                    <button onClick={() => setSortBy(5)} className="colorwaysContextMenuItm">
+                        Source Type (Online First)
+                        <Radio checked={sortBy === 5} style={{
+                            marginLeft: "8px"
+                        }} />
+                    </button>
+                    <button onClick={() => setSortBy(6)} className="colorwaysContextMenuItm">
+                        Source Type (Offline First)
+                        <Radio checked={sortBy === 6} style={{
+                            marginLeft: "8px"
+                        }} />
+                    </button>
+                    <button onClick={() => setSortBy(7)} className="colorwaysContextMenuItm">
+                        Color Count (Ascending)
+                        <Radio checked={sortBy === 7} style={{
+                            marginLeft: "8px"
+                        }} />
+                    </button>
+                    <button onClick={() => setSortBy(8)} className="colorwaysContextMenuItm">
+                        Color Count (Descending)
+                        <Radio checked={sortBy === 8} style={{
+                            marginLeft: "8px"
+                        }} />
+                    </button>
+                </>}>
+                {({ onClick }) => <button
+                    onClick={onClick}
+                    className="colorwaysPillButton colorwaysPillButton-primary"
+                >
+                    Sort By: {(() => {
+                        switch (sortBy) {
+                            case 1:
+                                return "Name (A-Z)";
+                            case 2:
+                                return "Name (Z-A)";
+                            case 3:
+                                return "Source (A-Z)";
+                            case 4:
+                                return "Source (Z-A)";
+                            case 5:
+                                return "Source Type (Online First)";
+                            case 6:
+                                return "Source Type (Offline First)";
+                            case 7:
+                                return "Color Count (Ascending)";
+                            case 8:
+                                return "Color Count (Descending)";
+                            case 9:
+                                return "Most Used";
+                            case 10:
+                                return "Least Used";
+                            default:
+                                return "Name (A-Z)";
                         }
-                    }
+                    })()}
+                </button>}
+            </StaticOptionsMenu>
+            <StaticOptionsMenu
+                menu={<>
+                    {filters.map(({ name, id }) => {
+                        return <button onClick={() => setVisibleSources(id)} className="colorwaysContextMenuItm">
+                            {name}
+                            <Radio checked={visibleSources === id} style={{
+                                marginLeft: "8px"
+                            }} />
+                        </button>;
+                    })}
+                </>}>
+                {({ onClick }) => <button
+                    onClick={onClick}
+                    className="colorwaysPillButton colorwaysPillButton-primary"
+                >
+                    Source: {(filters.find(filter => filter.id === visibleSources) as { name: string, id: string, sources: SourceObject[]; }).name}
+                </button>}
+            </StaticOptionsMenu>
+            <button
+                className="colorwaysPillButton colorwaysPillButton-primary"
+                onClick={() => {
+                    if (layout === "normal") return setLayout("compact");
+                    else return setLayout("normal");
                 }}
-            />
+            >
+                Layout: {layouts.find(l => l.id === layout)?.name}
+            </button>
         </div>
     </div>
         {(wsConnected && settings.selectorType === "normal" && !isManager) ? <div className="colorwaysManagerActive">
@@ -310,54 +381,8 @@ export default function ({
                 <div className="discordColorwayPreviewColorContainer" style={{ backgroundColor: "var(--os-accent-color)" }} />
                 <div className="colorwayLabelContainer">
                     <span className="colorwayLabel">Auto Colorway</span>
-                    <span className="colorwayLabel colorwayLabelSubnote colorwaysNote">Active preset: {Object.values(getAutoPresets()).find(pr => pr.id === autoPreset)?.name}</span>
+                    <span className="colorwayLabel colorwayLabelSubnote colorwaysNote">Active preset: {Object.values(getAutoPresets()).find(pr => pr.id === contexts.activeAutoPreset)?.name}</span>
                 </div>
-                <button
-                    className="colorwaysPillButton colorwaysPillButton-secondary"
-                    onClick={async e => {
-                        e.stopPropagation();
-                        openModal(props => <AutoColorwaySelector autoColorwayId={autoPreset} modalProps={props} onChange={autoPresetId => {
-                            setAutoPreset(autoPresetId);
-                            if (activeColorwayObject.id === "Auto") {
-                                const { colors } = getAutoPresets(colorToHex(getComputedStyle(document.body).getPropertyValue("--os-accent-color")).slice(0, 6))[autoPreset];
-                                const newObj: ColorwayObject = {
-                                    id: "Auto",
-                                    sourceType: "online",
-                                    source: null,
-                                    colors: colors
-                                };
-                                if (isManager) {
-                                    sendColorway(newObj);
-                                } else {
-                                    setContext("activeColorwayObject", newObj);
-                                    setActiveColorwayObject(newObj);
-
-                                    DataStore.get("colorwaysPreset").then((colorwaysPreset: string) => {
-                                        if (colorwaysPreset === "default") {
-                                            ColorwayCSS.set(generateCss(
-                                                colors,
-                                                true,
-                                                true,
-                                                undefined,
-                                                newObj.id as string
-                                            ));
-                                        } else {
-                                            if (gradientPresetIds.includes(colorwaysPreset)) {
-                                                ColorwayCSS.set((getPreset(colors)[colorwaysPreset].preset as { full: string; }).full);
-                                            } else {
-                                                ColorwayCSS.set(getPreset(colors)[colorwaysPreset].preset as string);
-                                            }
-                                        }
-                                    });
-                                }
-                            }
-                        }} />);
-                    }}
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" style={{ margin: "4px" }} viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M 21.2856,9.6 H 24 v 4.8 H 21.2868 C 20.9976,15.5172 20.52,16.5576 19.878,17.4768 L 21.6,19.2 19.2,21.6 17.478,19.8768 c -0.9216,0.642 -1.9596,1.1208 -3.078,1.4088 V 24 H 9.6 V 21.2856 C 8.4828,20.9976 7.4436,20.5188 6.5232,19.8768 L 4.8,21.6 2.4,19.2 4.1232,17.4768 C 3.4812,16.5588 3.0024,15.5184 2.7144,14.4 H 0 V 9.6 H 2.7144 C 3.0024,8.4816 3.48,7.4424 4.1232,6.5232 L 2.4,4.8 4.8,2.4 6.5232,4.1232 C 7.4424,3.48 8.4816,3.0024 9.6,2.7144 V 0 h 4.8 v 2.7132 c 1.1184,0.2892 2.1564,0.7668 3.078,1.4088 l 1.722,-1.7232 2.4,2.4 -1.7232,1.7244 c 0.642,0.9192 1.1208,1.9596 1.4088,3.0768 z M 12,16.8 c 2.65092,0 4.8,-2.14908 4.8,-4.8 0,-2.650968 -2.14908,-4.8 -4.8,-4.8 -2.650968,0 -4.8,2.149032 -4.8,4.8 0,2.65092 2.149032,4.8 4.8,4.8 z" />
-                    </svg>
-                </button>
             </div> : <></>}
             {errorCode !== 0 && <span style={{
                 color: "#fff",

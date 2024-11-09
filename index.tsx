@@ -50,9 +50,9 @@ export type {
 } from "react";
 
 export const PluginProps = {
-    pluginVersion: "7.0.0",
+    pluginVersion: "7.0.1",
     clientMod: "Vencord",
-    UIVersion: "2.2.0",
+    UIVersion: "2.2.1",
     CSSVersion: "1.23"
 };
 

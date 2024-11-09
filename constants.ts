@@ -344,3 +344,14 @@ export const colorPickerProps = {
     ],
     showEyeDropper: true
 };
+
+export const themes = [
+    {
+        name: "Discord (Default)",
+        id: "discord"
+    },
+    {
+        name: "Colorish",
+        id: "colorish"
+    }
+];

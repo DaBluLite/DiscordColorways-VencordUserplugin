@@ -45,9 +45,6 @@
 }
 
 [data-theme="discord"] .colorwaysPillButton {
-    height: var(--custom-button-button-sm-height);
-    min-width: var(--custom-button-button-sm-width);
-    min-height: var(--custom-button-button-sm-height);
     width: auto;
     transition:
         background-color var(--custom-button-transition-duration) ease,
@@ -64,6 +61,10 @@
     line-height: 16px;
     padding: 2px 16px;
     user-select: none;
+}
+
+[data-theme="discord"] .colorwaysPillButton.colorwaysPillButton-icon {
+    padding: 4px;
 }
 
 [data-theme="discord"] .colorwaysPillButton.colorwaysPillButton-primary,
@@ -148,7 +149,7 @@
 [data-theme="discord"] .colorwayTextBox {
     border-radius: 3px;
     color: var(--text-normal);
-    background-color: var(--input-background) !important;
+    background-color: var(--input-background);
     height: 40px;
     padding: 10px;
     transition: none;
@@ -271,31 +272,7 @@
 }
 
 .visual-refresh [data-theme="discord"] .colorwaysPillButton:not(.colorwaysPillButton-outlined) {
-    border: 1px solid rgba(255,255,255,10%) !important;
-}
-
-[data-theme="discord"] .colorwaysPillButton-md {
-    height: var(--custom-button-button-md-height);
-    min-width: var(--custom-button-button-md-width);
-    min-height: var(--custom-button-button-md-height);
-}
-
-[data-theme="discord"] .colorwaysPillButton-lg {
-    height: var(--custom-button-button-lg-height);
-    min-width: var(--custom-button-button-lg-width);
-    min-height: var(--custom-button-button-lg-height);
-}
-
-[data-theme="discord"] .colorwaysPillButton-xl {
-    height: var(--custom-button-button-xl-height);
-    min-width: var(--custom-button-button-xl-width);
-    min-height: var(--custom-button-button-xl-height);
-}
-
-[data-theme="discord"] .colorwaysPillButton-tn {
-    height: var(--custom-button-button-tn-height);
-    min-width: var(--custom-button-button-tn-width);
-    min-height: var(--custom-button-button-tn-height);
+    border: 1px solid rgba(255,255,255,10%);
 }
 
 [data-theme="discord"] .colorwaysModalHeader {
@@ -461,13 +438,14 @@
 }
 
 .visual-refresh [data-theme="discord"] .colorwayTextBox {
-    background: rgba(0,0,0,8%) !important;
+    background: rgba(0,0,0,8%);
     border-radius: 8px;
     transition: border-color.2s ease-in-out;
     border: 1px solid var(--__temp-input-border);
 }
 
-.visual-refresh [data-theme="discord"] .colorwayTextBox:focus {
+.visual-refresh [data-theme="discord"] .colorwayTextBox:focus,
+.visual-refresh [data-theme="discord"] .colorwayTextBox:has(:focus) {
     border-color: var(--text-link);
 }
 

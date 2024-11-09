@@ -5,16 +5,20 @@
  */
 
 import { DataStore, FluxDispatcher, FluxEvents, openModal, PluginProps, useState } from "../../";
-import { defaultColorwaySource, nullColorwayObj } from "../../constants";
+import { ColorwayCSS } from "../../colorwaysAPI";
+import { defaultColorwaySource, nullColorwayObj, themes } from "../../constants";
 import { contexts, setContext } from "../../contexts";
-import { ModalProps } from "../../types";
+import { generateCss, getAutoPresets, getPreset, gradientBase, gradientPresetIds } from "../../css";
+import { ColorwayObject, ModalProps } from "../../types";
 import { chooseFile, saveFile } from "../../utils";
-import { connect, isWSOpen } from "../../wsClient";
+import { connect, hasManagerRole, isWSOpen, sendColorway, wsOpen } from "../../wsClient";
 import FeaturePresenter from "../FeaturePresenter";
 import { CogIcon, DownloadIcon, OpenExternalIcon, PalleteIcon, WirelessIcon } from "../Icons";
 import Modal from "../Modal";
 import ReloadRequiredModal from "../Modals/ReloadRequiredModal";
+import Radio from "../Radio";
 import Setting from "../Setting";
+import StaticOptionsMenu from "../StaticOptionsMenu";
 import Switch from "../Switch";
 import TabBar from "../TabBar";
 
@@ -31,6 +35,42 @@ export default function ({
     const [autoconnectDelay, setAutoconnectDelay] = useState(contexts.colorwaysManagerAutoconnectPeriod / 1000);
     const [forceVR, setForceVR] = useState(contexts.colorwaysForceVR);
     const [active, setActive] = useState("Settings");
+    const [autoColorwayId, setAutoColorwayId] = useState(contexts.activeAutoPreset);
+    const [preset, setPreset] = useState(contexts.colorwaysPreset);
+
+    function onPresetChange(value: string) {
+        setPreset(value);
+        setContext("colorwaysPreset", value);
+
+        DataStore.get("activeColorwayObject").then((active: ColorwayObject) => {
+            if (active.id) {
+                if (wsOpen) {
+                    if (hasManagerRole) {
+                        sendColorway(active);
+                    }
+                } else {
+                    if (value === "default") {
+                        ColorwayCSS.set(generateCss(
+                            active.colors,
+                            true,
+                            true,
+                            undefined,
+                            active.id
+                        ));
+                    } else {
+                        if (gradientPresetIds.includes(value)) {
+                            const css = Object.keys(active).includes("linearGradient")
+                                ? gradientBase(active.colors, true) + `:root:root {--custom-theme-background: linear-gradient(${active.linearGradient})}`
+                                : (getPreset(active.colors)[value].preset as { full: string; }).full;
+                            ColorwayCSS.set(css);
+                        } else {
+                            ColorwayCSS.set(getPreset(active.colors)[value].preset as string);
+                        }
+                    }
+                }
+            }
+        });
+    }
 
     return <div className="colorwaysModalTab" data-theme={hasTheme ? theme : "discord"}>
         <TabBar
@@ -67,22 +107,26 @@ export default function ({
                                     cursor: "pointer"
                                 }}>
                                     <label className="colorwaySwitch-label">Plugin Theme</label>
-                                    <select
-                                        className="colorwaysPillButton colorwaysPillButton-primary"
-                                        style={{ border: "none" }}
-                                        onChange={({ currentTarget: { value } }) => {
-                                            setTheme(value);
-                                            setContext("colorwaysPluginTheme", value);
-                                            FluxDispatcher.dispatch({
-                                                type: "COLORWAYS_UPDATE_THEME" as FluxEvents,
-                                                theme: value
-                                            });
-                                        }}
-                                        value={theme}
-                                    >
-                                        <option value="discord">Discord (Default)</option>
-                                        <option value="colorish">Colorish</option>
-                                    </select>
+                                    <label className="colorwaySwitch-label" style={{ width: "fit-content", flex: "0 0 auto", marginRight: "8px" }}>{themes.find(t => t.id === theme)?.name}</label>
+                                    <StaticOptionsMenu
+                                        xPos="right"
+                                        menu={<>{themes.map(({ name, id }) => <button onClick={() => {
+                                            setTheme(id);
+                                            setContext("colorwaysPluginTheme", id);
+                                            FluxDispatcher.dispatch({ type: "COLORWAYS_UPDATE_THEME" as FluxEvents, theme: id });
+                                        }} className="colorwaysContextMenuItm">
+                                            {name}
+                                            <Radio checked={theme === id} style={{
+                                                marginLeft: "8px"
+                                            }} />
+                                        </button>)}</>}>
+                                        {({ onClick }) => <button
+                                            onClick={onClick}
+                                            className="colorwaysPillButton colorwaysPillButton-md colorwaysPillButton-primary colorwaysPillButton-icon"
+                                        >
+                                            <CogIcon width={16} height={16} />
+                                        </button>}
+                                    </StaticOptionsMenu>
                                 </div>
                             </Setting>
                             <Setting divider>
@@ -99,6 +143,75 @@ export default function ({
                                         });
                                     }} />
                                 <span className="colorwaysNote">Note: Only applies to Modals</span>
+                            </Setting>
+                            <span className="colorwaysModalFieldHeader">Colorways</span>
+                            <Setting>
+                                <div style={{
+                                    display: "flex",
+                                    flexDirection: "row",
+                                    width: "100%",
+                                    alignItems: "center",
+                                    cursor: "pointer"
+                                }}>
+                                    <label className="colorwaySwitch-label">Colorway Preset</label>
+                                    <label className="colorwaySwitch-label" style={{ width: "fit-content", flex: "0 0 auto", marginRight: "8px" }}>{Object.values(getPreset({})).find(pr => pr.id === preset)?.name}</label>
+                                    <StaticOptionsMenu
+                                        xPos="right"
+                                        menu={<>
+                                            {Object.values(getPreset({})).map(({ name, id }) => {
+                                                return <button onClick={() => onPresetChange(id)} className="colorwaysContextMenuItm">
+                                                    {name}
+                                                    <Radio checked={preset === id} style={{
+                                                        marginLeft: "8px"
+                                                    }} />
+                                                </button>;
+                                            })}
+                                        </>}>
+                                        {({ onClick }) => <button
+                                            onClick={onClick}
+                                            className="colorwaysPillButton colorwaysPillButton-md colorwaysPillButton-primary colorwaysPillButton-icon"
+                                        >
+                                            <CogIcon width={16} height={16} />
+                                        </button>}
+                                    </StaticOptionsMenu>
+                                </div>
+                                <span className="colorwaysNote">The template which all colorways (excluding the Auto Colorway) use to generate a theme.</span>
+                            </Setting>
+                            <div className="dc-info-card" style={{ marginBottom: "20px" }}>
+                                <strong>About the Auto Colorway</strong>
+                                <span>The auto colorway allows you to use your system's accent color in combination with a selection of presets that will fully utilize it.</span>
+                            </div>
+                            <Setting divider>
+                                <div style={{
+                                    display: "flex",
+                                    flexDirection: "row",
+                                    width: "100%",
+                                    alignItems: "center",
+                                    cursor: "pointer"
+                                }}>
+                                    <label className="colorwaySwitch-label">Auto Colorway Preset</label>
+                                    <label className="colorwaySwitch-label" style={{ width: "fit-content", flex: "0 0 auto", marginRight: "8px" }}>{Object.values(getAutoPresets()).find(pr => pr.id === autoColorwayId)?.name}</label>
+                                    <StaticOptionsMenu
+                                        xPos="right"
+                                        menu={<>
+                                            {Object.values(getAutoPresets()).map(({ name, id }) => {
+                                                return <button onClick={() => setAutoColorwayId(setContext("activeAutoPreset", id) as string)} className="colorwaysContextMenuItm">
+                                                    {name}
+                                                    <Radio checked={autoColorwayId === id} style={{
+                                                        marginLeft: "8px"
+                                                    }} />
+                                                </button>;
+                                            })}
+                                        </>}>
+                                        {({ onClick }) => <button
+                                            onClick={onClick}
+                                            className="colorwaysPillButton colorwaysPillButton-md colorwaysPillButton-primary colorwaysPillButton-icon"
+                                        >
+                                            <CogIcon width={16} height={16} />
+                                        </button>}
+                                    </StaticOptionsMenu>
+                                </div>
+                                <span className="colorwaysNote">The template which the Auto Colorway (visible on certain OSes) uses to generate a theme. These are also available as normal presets.</span>
                             </Setting>
                             <span className="colorwaysModalFieldHeader">Manager</span>
                             <Setting>
