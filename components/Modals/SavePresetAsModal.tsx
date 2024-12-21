@@ -4,11 +4,10 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { colorVals, functs } from "userplugins/discordColorways/constants";
-
 import { UserStore, useState } from "../..";
 import { useContextualState } from "../../api/Hooks";
 import { openModal } from "../../api/Modals";
+import { colorVals, functs } from "../../constants";
 import { ModalProps, Preset, PresetCondition, PresetObject } from "../../types";
 import CodeInput from "../CodeInput";
 import { PlusIcon } from "../Icons";
