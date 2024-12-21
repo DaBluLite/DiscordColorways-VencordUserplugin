@@ -4,54 +4,72 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { FluxDispatcher, FluxEvents, FocusLock, useEffect, useRef, useState } from "..";
-import { contexts } from "../contexts";
+import { FocusLock, ThemeStore, useRef } from "..";
+import { Hooks } from "../api";
+import { themes } from "../constants";
 import { ModalProps } from "../types";
 
-export default function ({ modalProps, onFinish, title, children, type = "normal", confirmMsg = "Finish", additionalButtons = [], cancelMsg = "Cancel" }: { modalProps: ModalProps, onFinish: (props: { closeModal: typeof modalProps.onClose; }) => void, title: string, children: React.ReactNode, confirmMsg?: string, type?: "normal" | "danger", additionalButtons?: { text: string, action: ((props: { closeModal: typeof modalProps.onClose; }) => any), type: "primary" | "brand" | "danger"; }[], cancelMsg?: string; }) {
-    const [theme, setTheme] = useState(contexts.colorwaysPluginTheme);
-    const [forceVR, setForceVR] = useState(contexts.colorwaysForceVR);
+export default function ({
+    modalProps,
+    onFinish,
+    title,
+    children,
+    type = "normal",
+    confirmMsg = "Finish",
+    additionalButtons = [],
+    cancelMsg = "Cancel",
+    style = {},
+    divider = true,
+    footer
+}: {
+    modalProps: ModalProps,
+    onFinish?: (props: { closeModal: typeof modalProps.onClose; }) => void,
+    title: React.ReactNode,
+    children: React.ReactNode,
+    style?: React.CSSProperties,
+    confirmMsg?: string,
+    type?: "normal" | "danger",
+    divider?: boolean,
+    additionalButtons?: {
+        text: string,
+        action: ((props: { closeModal: typeof modalProps.onClose; }) => any),
+        type: "primary" | "brand" | "danger";
+    }[],
+    cancelMsg?: string,
+    footer?: React.ReactNode;
+}) {
+    const theme = Hooks.useTheme();
     const cont = useRef(null);
 
-    useEffect(() => {
-        FluxDispatcher.subscribe("COLORWAYS_UPDATE_THEME" as FluxEvents, ({ theme }) => setTheme(theme));
-        FluxDispatcher.subscribe("COLORWAYS_UPDATE_FORCE_VR" as FluxEvents, ({ enabled }) => setForceVR(enabled));
-
-        return () => {
-            FluxDispatcher.unsubscribe("COLORWAYS_UPDATE_THEME" as FluxEvents, ({ theme }) => setTheme(theme));
-            FluxDispatcher.unsubscribe("COLORWAYS_UPDATE_FORCE_VR" as FluxEvents, ({ enabled }) => setForceVR(enabled));
-        };
-    }, []);
-
     return <FocusLock containerRef={cont}>
-        <div className={forceVR ? "visual-refresh" : ""} style={{ display: "contents" }}>
-            <div ref={cont} className={`colorwaysModal ${modalProps.transitionState === 2 ? "closing" : ""} ${modalProps.transitionState === 4 ? "hidden" : ""}`} data-theme={theme}>
-                <h2 className="colorwaysModalHeader">
-                    {title}
-                </h2>
-                <div className="colorwaysModalContent" style={{ minWidth: "500px" }}>
-                    {children}
-                </div>
-                <div className="colorwaysModalFooter">
-                    <button
-                        className={"colorwaysPillButton colorwaysPillButton-md" + (type === "danger" ? " colorwaysPillButton-danger" : " colorwaysPillButton-brand")}
+        <div style={style} ref={cont} className={`dc-modal theme-${ThemeStore.theme} ${modalProps.transitionState === 2 ? "closing" : ""} ${modalProps.transitionState === 4 ? "hidden" : ""} ${(themes.find(t => t.id === theme)?.classes || []).join(" ")}`} data-theme={theme}>
+            <h2 className="dc-modal-header" style={!divider ? { boxShadow: "none" } : {}}>
+                {title}
+            </h2>
+            <div className="dc-modal-content" style={{ minWidth: "500px" }}>
+                {children}
+            </div>
+            <div className="dc-modal-footer">
+                {footer || <>
+                    {onFinish ? <button
+                        className={"dc-button dc-button-md" + (type === "danger" ? " dc-button-danger" : " dc-button-brand")}
                         onClick={() => onFinish({ closeModal: modalProps.onClose })}
                     >
                         {confirmMsg}
-                    </button>
+                    </button> : null}
                     {additionalButtons.map(({ type, action, text }) => <button
-                        className={`colorwaysPillButton colorwaysPillButton-md${type === "primary" ? " colorwaysPillButton-outlined" : ""} colorwaysPillButton-${type}`}
+                        className={`dc-button dc-button-md dc-button-${type}`}
                         onClick={() => action({ closeModal: modalProps.onClose })}
                     >
                         {text}
                     </button>)}
                     <button
-                        className={"colorwaysPillButton colorwaysPillButton-md colorwaysPillButton-outlined colorwaysPillButton-primary"}
+                        className={"dc-button dc-button-md dc-button-primary"}
                         onClick={() => modalProps.onClose()}
                     >
                         {cancelMsg}
                     </button>
-                </div>
+                </>}
             </div>
         </div>
     </FocusLock>;

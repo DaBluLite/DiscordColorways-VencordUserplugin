@@ -4,6 +4,9 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import { type contexts } from "./api/Contexts";
+import { type colorVals } from "./constants";
+
 export interface Colorway {
     [key: string]: any,
     name: string,
@@ -14,15 +17,65 @@ export interface Colorway {
     tertiary: string,
     original?: boolean,
     author: string,
-    authorID: string,
     colors?: string[],
     isGradient?: boolean,
     sourceType?: "online" | "offline" | "temporary" | null,
     source?: string,
-    linearGradient?: string,
-    preset?: string,
-    CSSVersion: string;
+    linearGradient?: string;
 }
+
+type FormTextTypes = Record<"DEFAULT" | "INPUT_PLACEHOLDER" | "DESCRIPTION" | "LABEL_BOLD" | "LABEL_SELECTED" | "LABEL_DESCRIPTOR" | "ERROR" | "SUCCESS", string>;
+type Heading = `h${1 | 2 | 3 | 4 | 5 | 6}`;
+
+type FormTitle = React.ComponentType<React.HTMLProps<HTMLTitleElement> & React.PropsWithChildren<{
+    /** is h5 */
+    tag?: Heading;
+    faded?: boolean;
+    disabled?: boolean;
+    required?: boolean;
+    error?: React.ReactNode;
+}>>;
+
+type FormSection = React.ComponentType<React.PropsWithChildren<{
+    /** is h5 */
+    tag?: Heading;
+    className?: string;
+    titleClassName?: string;
+    titleId?: string;
+    title?: React.ReactNode;
+    disabled?: boolean;
+    htmlFor?: unknown;
+}>>;
+
+type FormDivider = React.ComponentType<{
+    className?: string;
+    style?: React.CSSProperties;
+}>;
+
+
+type FormText = React.ComponentType<React.PropsWithChildren<{
+    disabled?: boolean;
+    selectable?: boolean;
+    /** defaults to FormText.Types.DEFAULT */
+    type?: string;
+}> & TextProps> & { Types: FormTextTypes; };
+
+type TextVariant = "heading-sm/normal" | "heading-sm/medium" | "heading-sm/semibold" | "heading-sm/bold" | "heading-md/normal" | "heading-md/medium" | "heading-md/semibold" | "heading-md/bold" | "heading-lg/normal" | "heading-lg/medium" | "heading-lg/semibold" | "heading-lg/bold" | "heading-xl/normal" | "heading-xl/medium" | "heading-xl/bold" | "heading-xxl/normal" | "heading-xxl/medium" | "heading-xxl/bold" | "eyebrow" | "heading-deprecated-14/normal" | "heading-deprecated-14/medium" | "heading-deprecated-14/bold" | "text-xxs/normal" | "text-xxs/medium" | "text-xxs/semibold" | "text-xxs/bold" | "text-xs/normal" | "text-xs/medium" | "text-xs/semibold" | "text-xs/bold" | "text-sm/normal" | "text-sm/medium" | "text-sm/semibold" | "text-sm/bold" | "text-md/normal" | "text-md/medium" | "text-md/semibold" | "text-md/bold" | "text-lg/normal" | "text-lg/medium" | "text-lg/semibold" | "text-lg/bold" | "display-sm" | "display-md" | "display-lg" | "code";
+
+type TextProps = React.PropsWithChildren<React.HtmlHTMLAttributes<HTMLDivElement> & {
+    variant?: TextVariant;
+    tag?: "div" | "span" | "p" | "strong" | Heading;
+    selectable?: boolean;
+    lineClamp?: number;
+}>;
+
+export type FormsType = {
+    FormTitle: FormTitle,
+    FormSection: FormSection,
+    FormDivider: FormDivider,
+    FormText: FormText,
+    CustomColorPicker;
+};
 
 export interface ColorPickerProps {
     color: number;
@@ -31,23 +84,6 @@ export interface ColorPickerProps {
     label: any;
     onChange(color: number): void;
 }
-
-export type AnimatableComponent = string | Exclude<React.ElementType, string>;
-
-export type WithAnimated = {
-    (Component: AnimatableComponent): any;
-    [key: string]: any;
-};
-
-export type Animatable<T = any> = T extends number
-    ? number
-    : T extends string
-    ? string
-    : T extends ReadonlyArray<number | string>
-    ? Array<number | string> extends T // When true, T is not a tuple
-    ? ReadonlyArray<number | string>
-    : { [P in keyof T]: Animatable<T[P]> }
-    : never;
 
 export interface ColorwayObject {
     id: string | null,
@@ -63,10 +99,50 @@ export interface ColorwayObject {
     linearGradient?: string;
 }
 
-export interface SourceObject {
-    type: "online" | "offline" | "temporary",
+type PresetSourceType = "online" | "offline" | "theme" | "builtin";
+
+export interface Preset {
+    name: string;
+    css: string;
+    sourceType: PresetSourceType,
     source: string,
-    colorways: Colorway[];
+    author: string,
+    conditions?: PresetCondition[];
+}
+
+export interface PresetObject {
+    id: string;
+    css: string;
+    sourceType: PresetSourceType,
+    source: string,
+    conditions?: PresetCondition[];
+}
+
+export const enum Tabs {
+    Selector,
+    Settings,
+    Sources,
+    WsConnection,
+    ExpandSidebar
+}
+
+export interface PresetCondition {
+    if: string;
+    is: PresetConditionFunction;
+    than: string;
+    onCondition: string;
+    onConditionElse?: string;
+}
+
+export type PresetConditionFunction = "greaterThan" | "lowerThan" | "equal";
+
+export type ColorValue = typeof colorVals[number]["value"];
+
+export interface SourceObject {
+    type: "online" | "offline",
+    source: string,
+    colorways?: Colorway[],
+    presets?: Preset[];
 }
 
 export enum SortOptions {
@@ -94,7 +170,7 @@ export interface StoreItem {
     authorGh: string;
 }
 
-const enum ModalTransitionState {
+export const enum ModalTransitionState {
     ENTERING,
     ENTERED,
     EXITING,
@@ -106,3 +182,43 @@ export interface ModalProps {
     transitionState: ModalTransitionState;
     onClose(): void;
 }
+
+export interface ModalOptions {
+    modalKey?: string;
+    onCloseRequest?: (() => void);
+    onCloseCallback?: (() => void);
+}
+
+export const enum SourceActions {
+    AddColorway,
+    RemoveColorway,
+    AddPreset,
+    RemovePreset
+}
+
+export interface ButtonProps {
+    color?: ButtonColors;
+    size?: ButtonSizes;
+    props?: ("outlined" | "icon")[];
+    onClick: React.MouseEventHandler<HTMLButtonElement>;
+    children: React.ReactNode;
+}
+
+export const enum ButtonColors {
+    BRAND = "brand",
+    PRIMARY = "primary",
+    SECONDARY = "secondary",
+    DANGER = "danger"
+}
+
+export const enum ButtonSizes {
+    TINY = "tn",
+    MEDIUM = "md",
+    LARGE = "lg",
+    EXTRALARGE = "xl"
+}
+
+export type RenderFunction = (props: ModalProps) => React.ReactNode;
+
+export type ContextKey = keyof typeof contexts;
+export type Context<Key extends ContextKey> = typeof contexts[Key];

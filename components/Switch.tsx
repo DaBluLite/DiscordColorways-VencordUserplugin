@@ -25,12 +25,12 @@ export default function ({
         cursor: "pointer",
         ...style
     }}>
-        <label className="colorwaySwitch-label" htmlFor={id}>{label}</label>
-        <div className={`colorwaysSettings-switch ${value ? "checked" : ""}`}>
-            <svg viewBox="0 0 28 20" preserveAspectRatio="xMinYMid meet" aria-hidden="true" className="colorwaysSettings-switchHandle" style={{
+        <label className="dc-switch-label" htmlFor={id}>{label}</label>
+        <div className={`dc-switch ${value ? "checked" : ""}`}>
+            <svg viewBox="0 0 28 20" preserveAspectRatio="xMinYMid meet" aria-hidden="true" className="dc-switch-handle" style={{
                 left: value ? "12px" : "-3px"
             }}>
-                <rect className="colorwaysSettings-switchCircle" fill="#000" x="4" y="0" height="20" width="20" rx="10" />
+                <rect className="dc-switch-thumb" fill="#000" x="4" y="0" height="20" width="20" rx="10" />
             </svg>
             <input checked={value} id={id} type="checkbox" style={{
                 position: "absolute",
@@ -46,7 +46,7 @@ export default function ({
                 onChange(e.currentTarget.checked);
             }} />
         </div>
-    </div> : <div className={`colorwaysSettings-switch ${value ? "checked" : ""}`}>
+    </div> : <div className={`dc-switch ${value ? "checked" : ""}`}>
         <svg viewBox="0 0 28 20" preserveAspectRatio="xMinYMid meet" aria-hidden="true" style={{
             left: value ? "12px" : "-3px",
             transition: ".2s ease",
@@ -56,7 +56,7 @@ export default function ({
             height: "18px",
             margin: "3px"
         }}>
-            <rect className="colorwaysSettings-switchCircle" fill="#000" x="4" y="0" height="20" width="20" rx="10" />
+            <rect className="dc-switch-thumb" fill="#000" x="4" y="0" height="20" width="20" rx="10" />
         </svg>
         <input checked={value} id={id} type="checkbox" style={{
             position: "absolute",

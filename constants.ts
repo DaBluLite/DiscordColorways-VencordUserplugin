@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { ColorwayObject } from "./types";
+import { ColorwayObject, PresetConditionFunction } from "./types";
 
 export const defaultColorwaySource = "https://raw.githubusercontent.com/ProjectColorway/ProjectColorway/master/index.json";
 
@@ -348,10 +348,43 @@ export const colorPickerProps = {
 export const themes = [
     {
         name: "Discord (Default)",
-        id: "discord"
+        id: "discord",
+        preview: "#313338"
     },
     {
         name: "Colorish",
-        id: "colorish"
+        id: "colorish",
+        preview: "#000000"
+    },
+    {
+        name: "Discord (Visual Refresh)",
+        id: "discord-vr",
+        preview: "#26262a",
+        classes: ["visual-refresh"]
     }
 ];
+
+export const colorwayVarRegex = /@colorwayVar [a-z-]* (colorway\((accent|primary|secondary|tertiary)(|-(h|s|l))\)|\{\{(accent|primary|secondary|tertiary)(|-(h|s|l))\}\}|.)+/g;
+
+export const functs: { name: string, value: PresetConditionFunction; }[] = [
+    { name: "Equal To", value: "equal" },
+    { name: "Greater Than", value: "greaterThan" },
+    { name: "Lesser Than", value: "lowerThan" }
+];
+
+export const colorVals: { name: string, value: string; }[] = [
+    { name: "Accent Hue", value: "accent-h" },
+    { name: "Accent Saturation", value: "accent-s" },
+    { name: "Accent Lightness", value: "accent-l" },
+    { name: "Primary Hue", value: "primary-h" },
+    { name: "Primary Saturation", value: "primary-s" },
+    { name: "Primary Lightness", value: "primary-l" },
+    { name: "Secondary Hue", value: "secondary-h" },
+    { name: "Secondary Saturation", value: "secondary-s" },
+    { name: "Secondary Lightness", value: "secondary-l" },
+    { name: "Tertiary Hue", value: "tertiary-h" },
+    { name: "Tertiary Saturation", value: "tertiary-s" },
+    { name: "Tertiary Lightness", value: "tertiary-l" },
+];
+
+export const colorwayIfRegex = /@if\((accent|primary|secondary|tertiary)-(h|s|l) (>|<|=) (\d*)\) {([\S\s^{]*)}[\S\s\w]*@end-if\(\);/gm;

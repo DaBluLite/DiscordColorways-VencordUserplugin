@@ -4,28 +4,26 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { ContextMenuApi, FluxDispatcher, FluxEvents, useEffect, useState } from "..";
-import { contexts } from "../contexts";
+import { ContextMenuApi, FluxDispatcher, useEffect } from "..";
+import { Hooks } from "../api";
 
 export default function ({
     children,
     menu
 }: {
-    children: (props: { onContextMenu: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void; }) => JSX.Element,
-    menu: JSX.Element;
+    children: (props: { onContextMenu: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void; }) => React.ReactNode,
+    menu: React.ReactNode;
 }) {
-    const [theme, setTheme] = useState(contexts.colorwaysPluginTheme);
+    const theme = Hooks.useTheme();
 
     function Menu() {
         useEffect(() => {
             window.addEventListener("click", () => FluxDispatcher.dispatch({ type: "CONTEXT_MENU_CLOSE" }));
-            FluxDispatcher.subscribe("COLORWAYS_UPDATE_THEME" as FluxEvents, ({ theme }) => setTheme(theme));
             return () => {
                 window.removeEventListener("click", () => FluxDispatcher.dispatch({ type: "CONTEXT_MENU_CLOSE" }));
-                FluxDispatcher.unsubscribe("COLORWAYS_UPDATE_THEME" as FluxEvents, ({ theme }) => setTheme(theme));
             };
         }, []);
-        return <nav data-theme={theme} className="colorwaysContextMenu">
+        return <nav data-theme={theme} className="dc-contextmenu">
             {menu}
         </nav>;
     }

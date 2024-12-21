@@ -7,18 +7,25 @@
 export default function ({
     children,
     divider = false,
-    disabled = false
-}: { children: React.ReactNode, divider?: boolean, disabled?: boolean; }) {
+    disabled = false,
+    style = {}
+}: {
+    children: React.ReactNode,
+    divider?: boolean,
+    disabled?: boolean,
+    style?: React.CSSProperties;
+}) {
     return <div style={{
         display: "flex",
         flexDirection: "column",
-        marginBottom: "20px"
+        marginBottom: "20px",
+        ...style
     }}>
         {disabled ? <div style={{
             pointerEvents: "none",
             opacity: .5,
             cursor: "not-allowed"
         }}>{children}</div> : children}
-        {divider && <div className="colorwaysSettingsDivider" />}
+        {divider && <div className="dc-divider" />}
     </div>;
 }

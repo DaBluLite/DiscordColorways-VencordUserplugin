@@ -4,14 +4,15 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { DataStore, useState } from "../..";
+import { useState } from "../..";
+import { DataStore } from "../../api";
 import { defaultColorwaySource } from "../../constants";
 import { ModalProps } from "../../types";
 import Modal from "../Modal";
 import Setting from "../Setting";
 import Switch from "../Switch";
 
-export default function ({ modalProps, onOnline, onOffline, offlineOnly = false, name = "" }: { modalProps: ModalProps, onOnline: (props: { name: string, url: string; }) => any, onOffline: (props: { name: string; }) => any, offlineOnly?: boolean, name?: string; }) {
+export default function ({ modalProps, onOnline = () => { }, onOffline, offlineOnly = false, name = "" }: { modalProps: ModalProps, onOnline?(props: { name: string, url: string; }): any, onOffline(props: { name: string; }): any, offlineOnly?: boolean, name?: string; }) {
     const [colorwaySourceName, setColorwaySourceName] = useState<string>(name);
     const [colorwaySourceURL, setColorwaySourceURL] = useState<string>("");
     const [nameError, setNameError] = useState<string>("");
@@ -45,20 +46,21 @@ export default function ({ modalProps, onOnline, onOffline, offlineOnly = false,
         {!offlineOnly ? <Setting divider>
             <Switch
                 label="Online"
+                id="dc-is-new-source-online"
                 value={isOnline}
                 onChange={setIsOnline}
             />
-            <span className="colorwaysNote">Immutable, and always up-to-date</span>
+            <span className="dc-note">Immutable, and always up-to-date</span>
         </Setting> : null}
-        <span className={`colorwaysModalFieldHeader${nameError ? " colorwaysModalFieldHeader-error" : ""}`} style={{ marginBottom: "4px", width: "100%" }}>
-            Name{nameError ? <span className="colorwaysModalFieldHeader-errorMsg">
-                <span className="colorwaysModalFieldHeader-errorMsgSeparator">-</span>
+        <span className={`dc-field-header${nameError ? " dc-field-header-error" : ""}`} style={{ marginBottom: "4px", width: "100%" }}>
+            Name{nameError ? <span className="dc-field-header-errormsg">
+                <span className="dc-field-header-errordiv">-</span>
                 {nameError}
             </span> : <></>}
         </span>
         <input
             type="text"
-            className="colorwayTextBox"
+            className="dc-textbox"
             placeholder="Enter a valid Name..."
             onInput={e => setColorwaySourceName(e.currentTarget.value)}
             value={colorwaySourceName}
@@ -66,13 +68,13 @@ export default function ({ modalProps, onOnline, onOffline, offlineOnly = false,
             disabled={nameReadOnly && isOnline && !offlineOnly}
         />
         {(isOnline && !offlineOnly) ? <>
-            <span className={`colorwaysModalFieldHeader${URLError ? " colorwaysModalFieldHeader-error" : ""}`} style={{ marginBottom: "4px", marginTop: "16px" }}>URL{URLError ? <span className="colorwaysModalFieldHeader-errorMsg">
-                <span className="colorwaysModalFieldHeader-errorMsgSeparator">-</span>
+            <span className={`dc-field-header${URLError ? " dc-field-header-error" : ""}`} style={{ marginBottom: "4px", marginTop: "16px" }}>URL{URLError ? <span className="dc-field-header-errormsg">
+                <span className="dc-field-header-errordiv">-</span>
                 {URLError}
             </span> : <></>}</span>
             <input
                 type="text"
-                className="colorwayTextBox"
+                className="dc-textbox"
                 placeholder="Enter a valid URL..."
                 onChange={({ currentTarget: { value } }) => {
                     setColorwaySourceURL(value);

@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { FluxDispatcher, FluxEvents, useEffect, useState } from "..";
-import { contexts } from "../contexts";
+import { useEffect, useState } from "..";
+import { Hooks } from "../api";
 
 export default function ({
     children,
@@ -44,18 +44,16 @@ export default function ({
         setShowMenu(false);
     }
 
-    const [theme, setTheme] = useState(contexts.colorwaysPluginTheme);
+    const theme = Hooks.useTheme();
 
     function Menu() {
         useEffect(() => {
             window.addEventListener("click", onPageClick);
-            FluxDispatcher.subscribe("COLORWAYS_UPDATE_THEME" as FluxEvents, ({ theme }) => setTheme(theme));
             return () => {
                 window.removeEventListener("click", onPageClick);
-                FluxDispatcher.unsubscribe("COLORWAYS_UPDATE_THEME" as FluxEvents, ({ theme }) => setTheme(theme));
             };
         }, []);
-        return <nav data-theme={theme} className="colorwaysContextMenu" style={{
+        return <nav data-theme={theme} className="dc-contextmenu" style={{
             position: "fixed",
             top: `${pos.y}px`,
             ...(xPos === "left" ? { left: `${pos.x}px` } : { right: `${pos.x}px` })

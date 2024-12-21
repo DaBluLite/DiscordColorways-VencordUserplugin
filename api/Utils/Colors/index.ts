@@ -1,11 +1,8 @@
 /*
  * Vencord, a Discord client mod
- * Copyright (c) 2023 Vendicated and contributors
+ * Copyright (c) 2024 Vendicated and contributors
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-
-import { PluginProps } from ".";
-import { ColorwayObject } from "./types";
 
 export function HexToHSL(H: string) {
     let r: any = 0, g: any = 0, b: any = 0;
@@ -48,6 +45,13 @@ export const canonicalizeHex = (hex: string) => {
 
     return hex;
 };
+
+export function getHSLIndex(a: string) {
+    if (a === "h") return 0;
+    if (a === "s") return 1;
+    if (a === "l") return 2;
+    return 0;
+}
 
 export const stringToHex = (str: string) => {
     let hex = "";
@@ -92,10 +96,6 @@ export function getFontOnBg(bgColor: string) {
     var b = parseInt(color.substring(4, 6), 16);
     return (((r * 0.299) + (g * 0.587) + (b * 0.114)) > 186) ?
         "#000000" : "#ffffff";
-}
-
-export function $e(funcArray: Array<(...vars: any) => void>, ...vars: any[]) {
-    funcArray.forEach(e => e(vars));
 }
 
 export function hslToHex(h: number, s: number, l: number) {
@@ -153,70 +153,3 @@ export function colorToHex(color: string) {
 }
 
 export const parseClr = (clr: number) => (clr & 0x00ffffff).toString(16).padStart(6, "0");
-
-export function compareColorwayObjects(obj1: ColorwayObject, obj2: ColorwayObject) {
-    return obj1.id === obj2.id &&
-        obj1.source === obj2.source &&
-        obj1.sourceType === obj2.sourceType &&
-        obj1.colors.accent === obj2.colors.accent &&
-        obj1.colors.primary === obj2.colors.primary &&
-        obj1.colors.secondary === obj2.colors.secondary &&
-        obj1.colors.tertiary === obj2.colors.tertiary;
-}
-
-/**
- * Prompts the user to choose a file from their system
- * @param mimeTypes A comma separated list of mime types to accept, see https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/accept#unique_file_type_specifiers
- * @returns A promise that resolves to the chosen file or null if the user cancels
- */
-export function chooseFile(mimeTypes: string) {
-    return new Promise<File | null>(resolve => {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.style.display = "none";
-        input.accept = mimeTypes;
-        input.onchange = async () => {
-            resolve(input.files?.[0] ?? null);
-        };
-
-        document.body.appendChild(input);
-        input.click();
-        setImmediate(() => document.body.removeChild(input));
-    });
-}
-
-/**
- * Prompts the user to save a file to their system
- * @param file The file to save
- */
-export function saveFile(file: File) {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(file);
-    a.download = file.name;
-
-    document.body.appendChild(a);
-    a.click();
-    setImmediate(() => {
-        URL.revokeObjectURL(a.href);
-        document.body.removeChild(a);
-    });
-}
-
-export function classes(...classes: Array<string | null | undefined | false>) {
-    return classes.filter(Boolean).join(" ");
-}
-
-export function getWsClientIdentity() {
-    switch (PluginProps.clientMod) {
-        case "Vencord":
-            return "vencord";
-        case "BetterDiscord":
-            return "betterdiscord";
-        default:
-            return "discord";
-    }
-}
-
-export const Clipboard = {
-    copy: (text: string) => DiscordNative ? DiscordNative.clipboard.copy(text) : navigator.clipboard.writeText(text)
-};

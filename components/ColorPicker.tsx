@@ -5,6 +5,8 @@
  */
 
 import { Forms, Popout } from "..";
+import { parseClr } from "../api/Utils/Colors";
+import { FormsType } from "../types";
 
 export default function ({ onChange, onClose, color, suggestedColors, showEyeDropper, children }: {
     children: (props: {
@@ -20,11 +22,12 @@ export default function ({ onChange, onClose, color, suggestedColors, showEyeDro
     suggestedColors: string[];
     onChange(color: number): void;
 }) {
+    const Form = Forms as FormsType;
     return <Popout
         positionKey={crypto.randomUUID()}
-        renderPopout={e => <Forms.CustomColorPicker {...e}
-            value={color}
-            onChange={onChange}
+        renderPopout={e => <Form.CustomColorPicker {...e}
+            value={parseClr(color)}
+            onChange={(color: number) => onChange(color)}
             suggestedColors={suggestedColors}
             showEyeDropper={showEyeDropper}
         />}

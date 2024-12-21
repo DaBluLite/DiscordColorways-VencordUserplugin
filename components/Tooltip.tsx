@@ -12,7 +12,7 @@ export default function ({
     position = "top"
 }: {
     children: (props: { onMouseEnter: (e: React.MouseEvent<HTMLDivElement, MouseEvent>, ref?: React.MutableRefObject<null>) => void; onMouseLeave: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void; onClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void; }) => JSX.Element,
-    text: JSX.Element,
+    text: React.ReactNode,
     position?: "top" | "bottom" | "left" | "right",
 }) {
     const [visible, setVisible] = useState(false);
@@ -73,12 +73,12 @@ export default function ({
             onMouseLeave: () => setVisible(false),
             onClick: () => setVisible(false)
         })}
-        <div ref={tooltip} className={`colorwaysTooltip colorwaysTooltip-${position} ${!visible ? "colorwaysTooltip-hidden" : ""}`} style={{
+        <div ref={tooltip} className={`dc-tooltip dc-tooltip-${position} ${!visible ? "dc-tooltip-hidden" : ""}`} style={{
             top: `${pos.y}px`,
             left: `${pos.x}px`
         }}>
-            <div className="colorwaysTooltipPointer" />
-            <div className="colorwaysTooltipContent">{text}</div>
+            <div className="dc-tooltip-pointer" />
+            <div className="dc-tooltip-content">{text}</div>
         </div>
     </>;
 }
