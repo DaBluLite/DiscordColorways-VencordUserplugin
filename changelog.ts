@@ -14,31 +14,28 @@ const changelog: {
     description: "DiscordColorways is rapidly growing into a very complex app that has a lot of things to take care of. This update will keep things running smoothly.",
     changes: [
         {
-            title: "The under-the-hood improvements",
-            type: "improved",
+            title: "Added",
+            type: "added",
             items: [
-                "Removed unnessecary patches.",
-                "Fixed the autoconnect toggle not working properly.",
-                "The entirety of the under the hood storage system has been changed to contexts, thus improving startup times and performance.",
-                "Auto colorway presets now change the colors generated from the system accent color, thus allowing you to use any preset for the auto colorway.",
-                "Fixed various other bugs."
+                "Online sources now report the number of their colorways and presets"
             ]
         },
         {
             title: "Bug Fixes",
             type: "fixed",
             items: [
-                "Fixed usage metric saving, "
+                "Fixed various bugs with the new Dispatcher API",
+                "Fixed \"Save Preset As...\" modal"
             ]
         },
         {
-            title: "Changes & Additions",
-            type: "added",
+            title: "Changes",
+            type: "improved",
             items: [
-                "New selector UI.",
-                "Introducing the all-new presets: Download, share and create your own presets using the new tools provided by DiscordColorways"
+                "Moved location of project links below logo",
+                "Removed total colorway counter from settings",
             ]
-        },
+        }
     ]
 };
 

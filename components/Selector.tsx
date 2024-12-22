@@ -77,7 +77,7 @@ function get_updateCustomSource(customColorwayData: {
 }
 
 function Colorways() {
-    const [colorwayData] = Hooks.useContextualState("colorwayData", { save: false, listen: true });
+    const [colorwayData] = Hooks.useContextualState("colorwayData", false);
     const [customColorwayData, setCustomColorwayData] = Hooks.useContextualState("customColorways");
     const [activeColorwayObject, setActiveColorwayObject] = Hooks.useContextualState("activeColorwayObject");
     const [wsConnected] = Hooks.useContextualState("isConnected");
@@ -606,7 +606,7 @@ function Colorways() {
 }
 
 function Presets() {
-    const [colorwayData] = Hooks.useContextualState("colorwayData", { save: false, listen: true });
+    const [colorwayData] = Hooks.useContextualState("colorwayData", false);
     const [customColorwayData, setCustomColorwayData] = Hooks.useContextualState("customColorways");
     const [activePresetObject, setActivePresetObject] = Hooks.useContextualState("activePresetObject");
     const [colorwaysDiscordPreset] = Hooks.useContextualState("colorwaysDiscordPreset");

@@ -17,9 +17,7 @@ import { contexts, setContext } from "../Contexts";
  * @param context The name of the context
  * @param [options={ save: true, listen: true }] Change if the state listens to context changes or if it saves the context via DataStore
  */
-export function useContextualState<Key extends ContextKey>(context: Key, options: { save?: boolean, listen?: boolean; } = { save: true, listen: true }): [Context<Key>, Dispatch<SetStateAction<Context<Key>>>] {
-    options.save ??= true;
-    options.listen ??= true;
+export function useContextualState<Key extends ContextKey>(context: Key, save = true): [Context<Key>, Dispatch<SetStateAction<Context<Key>>>] {
     const [get, set] = useState<Context<Key>>(contexts[context] as Context<Key>);
     useEffect(() => {
         Dispatcher.addListener("COLORWAYS_CONTEXT_UPDATED", ({ c, value }: { c: Key, value: Context<Key>; }) => {
@@ -41,10 +39,10 @@ export function useContextualState<Key extends ContextKey>(context: Key, options
 
         function getVal(val: Context<Key>): Context<Key> {
             if (typeof value === "function") {
-                setContext(context, value(val), options.save);
+                setContext(context, value(val), save);
                 return value(val);
             } else {
-                setContext(context, (value as Context<Key>) as any, options.save);
+                setContext(context, (value as Context<Key>) as any, save);
                 return value;
             }
         }
@@ -190,7 +188,7 @@ export function simpleContextsObject(): { contexts: () => { [key in ContextKey]:
 }
 
 export function useTheme(): Context<"colorwaysPluginTheme"> {
-    const [theme] = useContextualState("colorwaysPluginTheme", { save: false });
+    const [theme] = useContextualState("colorwaysPluginTheme", false);
     return theme;
 }
 

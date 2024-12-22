@@ -26,21 +26,22 @@ import TabBar from "../TabBar";
 import Tooltip from "../Tooltip";
 
 export default function () {
-    const [active, setActive] = useState("Settings");
+    const items = [
+        {
+            name: "Settings",
+            component: () => <Settings />
+        },
+        {
+            name: "History",
+            component: () => <History />
+        }
+    ];
+    const [active, setActive] = useState<typeof items[number]["name"]>(items[0].name);
 
     return <TabBar
         active={active}
         container={({ children }) => <div className="dc-page-header">{children}</div>}
-        items={[
-            {
-                name: "Settings",
-                component: () => <Settings />
-            },
-            {
-                name: "History",
-                component: () => <History />
-            }
-        ]}
+        items={items}
         onChange={setActive}
     />;
 }
@@ -306,7 +307,7 @@ function Settings() {
                                     },
                                     {
                                         Icon: PalleteIcon,
-                                        title: "Your Colorways"
+                                        title: "Your Colorways and presets"
                                     },
                                     {
                                         Icon: CogIcon,
@@ -329,47 +330,29 @@ function Settings() {
             style={{
                 color: "var(--text-normal)",
                 fontWeight: 500,
+                fontSize: "14px"
+            }}
+        >by Project Colorway</span>
+        <span
+            className="dc-note"
+            style={{
+                color: "var(--text-normal)",
+                fontWeight: 500,
                 fontSize: "14px",
                 marginBottom: "12px"
             }}
-        >by Project Colorway</span>
-        <div className="dc-divider" style={{ marginBottom: "20px" }} />
-        <Setting divider>
-            <div style={{
-                display: "flex",
-                flexDirection: "row",
-                width: "100%",
-                alignItems: "center",
-                cursor: "pointer"
-            }}>
-                <label className="dc-switch-label">Version</label>
-                <span className="dc-note">{contexts.discordColorwaysData.version}</span>
-            </div>
-        </Setting>
-        <Setting divider>
-            <div style={{
-                display: "flex",
-                flexDirection: "row",
-                width: "100%",
-                alignItems: "center",
-                cursor: "pointer"
-            }}>
-                <label className="dc-switch-label">Loaded Colorways</label>
-                <span className="dc-note">{[...contexts.colorwayData.flatMap(src => src.colorways), ...contexts.customColorways.flatMap(src => src.colorways)].length}</span>
-            </div>
-        </Setting>
-        <Setting>
-            <div style={{
-                display: "flex",
-                flexDirection: "row",
-                width: "100%",
-                alignItems: "center",
-                cursor: "pointer"
-            }}>
-                <label className="dc-switch-label">Project Links</label>
-                <a role="link" target="_blank" className="dc-button dc-button-primary" style={{ width: "fit-content" }} href="https://github.com/DaBluLite/DiscordColorways">DiscordColorways <OpenExternalIcon width={16} height={16} /></a>
-                <a role="link" target="_blank" className="dc-button dc-button-primary" style={{ width: "fit-content", marginLeft: "8px" }} href="https://github.com/DaBluLite/ProjectColorway">Project Colorway <OpenExternalIcon width={16} height={16} /></a>
-            </div>
-        </Setting>
+        >
+            Version {contexts.discordColorwaysData.version.split(".")[0]}{contexts.discordColorwaysData.version.split(".")[1] !== "0" ? `.${contexts.discordColorwaysData.version.split(".")[1]}` : ""}{contexts.discordColorwaysData.version.split(".")[2] !== "0" ? ` (Patch ${contexts.discordColorwaysData.version.split(".")[2]})` : ""}
+        </span>
+        <div style={{
+            display: "flex",
+            flexDirection: "row",
+            width: "100%",
+            alignItems: "center",
+            cursor: "pointer"
+        }}>
+            <a role="link" target="_blank" className="dc-button dc-button-primary" style={{ width: "fit-content" }} href="https://github.com/DaBluLite/DiscordColorways">DiscordColorways <OpenExternalIcon width={16} height={16} /></a>
+            <a role="link" target="_blank" className="dc-button dc-button-primary" style={{ width: "fit-content", marginLeft: "8px" }} href="https://github.com/DaBluLite/ProjectColorway">Project Colorway <OpenExternalIcon width={16} height={16} /></a>
+        </div>
     </>;
 }

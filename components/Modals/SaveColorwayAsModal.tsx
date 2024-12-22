@@ -18,7 +18,7 @@ export default function ({
     modalProps,
     colorwayID: colorID,
     colorwayObject,
-    store
+    store = ""
 }: {
     modalProps: ModalProps;
     colorwayID?: string;
@@ -65,7 +65,7 @@ export default function ({
     const [colorwayName, setColorwayName] = useState<string>(colorwayObject ? (colorwayObject.id as string) : "");
     const [noStoreError, setNoStoreError] = useState<boolean>(false);
     const [duplicateError, setDuplicateError] = useState<boolean>(false);
-    const [storename, setStorename] = useState<string>("");
+    const [storename, setStorename] = useState<string>(store);
     const [colorwayID, setColorwayID] = useState(colorID);
     const [colorwayIDError, setColorwayIDError] = useState("");
 
@@ -104,7 +104,7 @@ export default function ({
         onFinish={async ({ closeModal }) => {
             setNoStoreError(false);
             setDuplicateError(false);
-            if (!storename) {
+            if (!storename && !store) {
                 return setNoStoreError(true);
             }
             const customColorway: Colorway = {
@@ -116,16 +116,12 @@ export default function ({
                 author: UserStore.getCurrentUser().username,
                 authorID: UserStore.getCurrentUser().id
             };
-            if (((offlineColorwayStores.find(s => s.name === storename)!.colorways || []).map(colorway => colorway.name).includes(customColorway.name)) && !store) {
+            if (((offlineColorwayStores.find(s => s.name === storename)!.colorways || []).find(colorway => colorway.name === customColorway.name)) && !store) {
                 return setDuplicateError(true);
             } else {
                 setOfflineColorwayStores(stores => stores.map(s => {
-                    if (store) {
-                        if (s.name === store) {
-                            return { name: s.name, colorways: [...(s.colorways || []), customColorway], presets: s.presets || [] };
-                        }
-                    } else if (s.name === storename) {
-                        return { name: s.name, colorways: [...(s.colorways || []), customColorway], presets: s.presets || [] };
+                    if (s.name === storename) {
+                        return { name: s.name, colorways: [...(s.colorways || []).filter(c => c.name !== (colorwayObject || { id: "" }).id), customColorway], presets: s.presets || [] };
                     }
                     return s;
                 }));

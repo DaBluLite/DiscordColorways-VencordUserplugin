@@ -34,7 +34,7 @@ export {
     useReducer,
     useRef,
     UserStore,
-    useState
+    useState,
 } from "@webpack/common";
 
 export const { getThemesList, getThemeData } = VencordNative.themes;
@@ -117,12 +117,12 @@ export default definePlugin({
     },
 
     start() {
+        // DC-Specific
+        Discord.start();
+
         // Vencord-Specific
         addAccessory("colorways-btn", props => <ColorwayID props={props} />);
         addServerListElement(ServerListRenderPosition.Above, () => <ColorwaysButton />);
-
-        // DC-Specific
-        Discord.start();
     },
     stop() {
         removeServerListElement(ServerListRenderPosition.Above, () => <ColorwaysButton />);

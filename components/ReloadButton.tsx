@@ -17,7 +17,7 @@ export default function ({
     setShowSpinner: Dispatch<SetStateAction<boolean>>;
 }) {
     const [colorwaySourceFiles] = Hooks.useContextualState("colorwaySourceFiles");
-    const [colorwayData, setColorwayData] = Hooks.useContextualState("colorwayData", { save: false });
+    const [colorwayData, setColorwayData] = Hooks.useContextualState("colorwayData", false);
     async function onReload_internal(force = false) {
         setShowSpinner(true);
 

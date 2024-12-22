@@ -22,6 +22,33 @@ import Spinner from "../Spinner";
 import StaticOptionsMenu from "../StaticOptionsMenu";
 import TabBar from "../TabBar";
 
+function OnlineSourceMeta({ source, onComplete, fallback = "loading" }: {
+    source: string, onComplete(props: {
+        colorways?: Colorway[],
+        presets?: Preset[];
+    }): string, fallback?: string;
+}): React.ReactNode {
+    const [data, setData] = useState<{
+        colorways?: Colorway[],
+        presets?: Preset[];
+    }>({ colorways: [], presets: [] });
+    const [loaded, setLoaded] = useState(false);
+    useEffect(() => {
+        (async () => {
+            const res: Response = await fetch(source);
+            try {
+                setData(await res.json());
+                setLoaded(true);
+            } catch (e) {
+                setData({ colorways: [], presets: [] });
+                setLoaded(true);
+            }
+        })();
+    }, []);
+
+    return <>{loaded ? onComplete(data) : fallback}</>;
+}
+
 export default function () {
     const [active, setActive] = useState("Installed");
 
@@ -221,7 +248,7 @@ function Installed() {
                             return a.name.localeCompare(b.name);
                     }
                 })
-                .map((src: { name: string, url?: string, colorways?: Colorway[], presets?: Preset[], type: "online" | "offline"; }, i: number) => <RightClickContextMenu menu={<>
+                .map((src: ({ name: string; } & ({ colorways?: Colorway[], presets?: Preset[], type: "offline"; } | { type: "online", url: string; })), i: number) => <RightClickContextMenu menu={<>
                     {src.type === "online" ? <><button onClick={() => {
                         Clipboard.copy(src.url as string);
                         Toasts.show({
@@ -292,7 +319,7 @@ function Installed() {
                         onContextMenu={onContextMenu}>
                         <div className="dc-label-wrapper">
                             <span className="dc-label">{src.name}</span>
-                            {src.type === "online" ? <span className="dc-label dc-subnote dc-note">Online • on {src.url as string}</span> : <span className="dc-label dc-subnote dc-note">Offline • {(src.colorways || []).length} colorways • {(src.presets || []).length} presets</span>}
+                            {src.type === "online" ? <span className="dc-label dc-subnote dc-note">Online • <OnlineSourceMeta source={src.url} onComplete={({ colorways, presets }) => `${(colorways || []).length} colorways • ${(presets || []).length} presets`} /></span> : <span className="dc-label dc-subnote dc-note">Offline • {(src.colorways || []).length} colorways • {(src.presets || []).length} presets</span>}
                         </div>
                         <div style={{ marginRight: "auto" }} />
                         <button

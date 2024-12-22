@@ -17,20 +17,20 @@ import PresetConditionModal from "./PresetConditionModal";
 export default function ({
     modalProps,
     presetObject,
-    store
+    store = ""
 }: {
     modalProps: ModalProps;
     presetObject?: PresetObject;
     store?: string;
 }) {
-    const [CSS, setCSS] = useState("");
+    const [CSS, setCSS] = useState(presetObject ? presetObject.css : "");
     const [offlineColorwayStores, setOfflineColorwayStores] = useContextualState("customColorways");
     const [colorwayName, setColorwayName] = useState<string>(presetObject ? (presetObject.id as string) : "");
     const [noStoreError, setNoStoreError] = useState<boolean>(false);
     const [noCSSError, setNoCSSError] = useState(false);
     const [duplicateError, setDuplicateError] = useState<boolean>(false);
-    const [storename, setStorename] = useState<string>("");
-    const [conditions, setConditions] = useState<PresetCondition[]>([]);
+    const [storename, setStorename] = useState<string>(store);
+    const [conditions, setConditions] = useState<PresetCondition[]>(presetObject ? (presetObject.conditions || []) : []);
 
     return <Modal
         modalProps={modalProps}
@@ -57,16 +57,12 @@ export default function ({
                 sourceType: "offline",
                 source: store || storename
             };
-            if ((offlineColorwayStores.find(s => s.name === storename)!.presets && (offlineColorwayStores.find(s => s.name === storename)!.presets || []).map(preset => preset.name).includes(customPreset.name)) && !store) {
+            if ((offlineColorwayStores.find(s => s.name === storename) && (offlineColorwayStores.find(s => s.name === storename)!.presets || []).find(preset => preset.name === customPreset.name)) && !store) {
                 return setDuplicateError(true);
             } else {
                 setOfflineColorwayStores(stores => stores.map(s => {
-                    if (store) {
-                        if (s.name === store) {
-                            return { name: s.name, presets: [...(s.presets || []), customPreset], colorways: s.colorways || [] };
-                        }
-                    } else if (s.name === storename) {
-                        return { name: s.name, presets: [...(s.presets || []), customPreset], colorways: s.colorways || [] };
+                    if (s.name === storename) {
+                        return { name: s.name, presets: [...(s.presets || []).filter(p => p.name !== customPreset.name), customPreset], colorways: s.colorways || [] };
                     }
                     return s;
                 }));

@@ -297,7 +297,7 @@ export const contexts: {
     boundKey: { "00000000": `discord.${Math.random().toString(16).slice(2)}.${new Date().getUTCMilliseconds()}` },
     colorwaysBoundManagers: [],
     discordColorwaysData: {
-        version: "8.0.0",
+        version: "8.0.1",
         UIVersion: "3.0.0"
     },
     themePresets: [],
@@ -319,11 +319,12 @@ export async function initContexts() {
                 openChangelogModal();
             }
         } else {
-            if (key === "discordColorwaysData" && (!data[i].version || data[i].version !== contexts.discordColorwaysData.version)) {
+            if (key === "discordColorwaysData" && (data[i].version !== contexts.discordColorwaysData.version)) {
                 await DataStore.set(key, { ...data[i], version: contexts.discordColorwaysData.version });
                 openChangelogModal();
+            } else {
+                contexts[key] = data[i];
             }
-            contexts[key] = data[i];
         }
     });
 

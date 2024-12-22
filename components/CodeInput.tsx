@@ -4,14 +4,12 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { hljs, useEffect, useState } from "..";
+import { hljs, useEffect } from "..";
 
 export default function ({ lang = "css", onChange = () => { }, value = "" }: { lang: "css" | "js" | "jsx" | "ts" | "tsx"; onChange?: (value: string) => void, value?: string; }) {
-    const [CSS, setCSS] = useState(value);
-
     useEffect(() => {
         document.querySelectorAll(".dc-codeblock").forEach(el => hljs.highlightElement(el));
-    }, [CSS]);
+    }, [value]);
 
     return <pre>
         <code
@@ -39,10 +37,9 @@ export default function ({ lang = "css", onChange = () => { }, value = "" }: { l
                 }
             }}
             onBlur={e => {
-                setCSS(e.currentTarget.textContent);
-                onChange(e.currentTarget.textContent);
+                onChange((e.currentTarget.textContent as string).replaceAll("\u00a0", " "));
             }}>
-            {CSS}
+            {value}
         </code>
     </pre>;
 }

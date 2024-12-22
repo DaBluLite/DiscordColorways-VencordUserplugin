@@ -11,17 +11,17 @@ import ListItem from "./ListItem";
 import MainUI from "./MainUI";
 
 export default function ({ hasPill = true }: { hasPill?: boolean; }) {
-    const [activeColorway] = Hooks.useContextualState("activeColorwayObject");
-    const [visibility] = Hooks.useContextualState("showColorwaysButton");
-    const [autoPreset] = Hooks.useContextualState("activeAutoPreset");
+    const [showColorwaysButton] = Hooks.useContextualState("showColorwaysButton");
+    const [activeColorwayObject] = Hooks.useContextualState("activeColorwayObject");
+    const [activeAutoPreset] = Hooks.useContextualState("activeAutoPreset");
 
-    return (visibility || window.BdApi) ? <ListItem
+    return (showColorwaysButton || window.BdApi) ? <ListItem
         hasPill={hasPill}
         tooltip={
             <>
                 <span>Discord Colorways</span>
-                <span style={{ color: "var(--text-muted)", fontWeight: 500, fontSize: 12 }}>{"Current Colorway: " + (activeColorway.id || "None")}</span>
-                {(activeColorway.id === "Auto" && activeColorway.sourceType === "auto") ? <span style={{ color: "var(--text-muted)", fontWeight: 500, fontSize: 12 }}>{"Auto Colors: " + (autoPreset ? getAutoPresets()[autoPreset].name : "None")}</span> : <></>}
+                <span style={{ color: "var(--text-muted)", fontWeight: 500, fontSize: 12 }}>{"Current Colorway: " + (activeColorwayObject.id || "None")}</span>
+                {(activeColorwayObject.id === "Auto" && activeColorwayObject.sourceType === "auto") ? <span style={{ color: "var(--text-muted)", fontWeight: 500, fontSize: 12 }}>{"Auto Colors: " + (activeAutoPreset ? getAutoPresets()[activeAutoPreset].name : "None")}</span> : <></>}
             </>
         }>
         {({ onMouseEnter, onMouseLeave, isActive, onClick }) => {
