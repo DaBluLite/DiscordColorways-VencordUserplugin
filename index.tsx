@@ -16,6 +16,7 @@ import { addServerListElement, removeServerListElement, ServerListRenderPosition
 import { Devs } from "@utils/constants";
 import { getIntlMessage } from "@utils/discord";
 import definePlugin from "@utils/types";
+import { findByPropsLazy } from "@webpack";
 
 import { Discord } from "./api";
 import ColorwayID from "./components/ColorwayID";
@@ -39,7 +40,7 @@ export {
 
 export const { getThemesList, getThemeData } = VencordNative.themes;
 
-export { findByPropsLazy } from "@webpack";
+export const ModalAPI = findByPropsLazy("openModalLazy");
 
 export default definePlugin({
     name: "DiscordColorways",

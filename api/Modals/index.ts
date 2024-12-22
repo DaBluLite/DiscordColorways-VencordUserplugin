@@ -4,10 +4,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { findByPropsLazy } from "../..";
+import { ModalAPI } from "../..";
 import { ModalOptions, RenderFunction } from "../../types";
-
-const ModalAPI = findByPropsLazy("openModalLazy");
 
 /**
  * Wait for the render promise to resolve, then open a modal with it.
