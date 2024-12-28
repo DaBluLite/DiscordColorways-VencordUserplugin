@@ -221,4 +221,5 @@ export const enum ButtonSizes {
 export type RenderFunction = (props: ModalProps) => React.ReactNode;
 
 export type ContextKey = keyof typeof contexts;
+export type Contexts = typeof contexts;
 export type Context<Key extends ContextKey> = typeof contexts[Key];

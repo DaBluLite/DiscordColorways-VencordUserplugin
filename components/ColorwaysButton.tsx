@@ -20,8 +20,7 @@ export default function ({ hasPill = true }: { hasPill?: boolean; }) {
         tooltip={
             <>
                 <span>Discord Colorways</span>
-                <span style={{ color: "var(--text-muted)", fontWeight: 500, fontSize: 12 }}>{"Current Colorway: " + (activeColorwayObject.id || "None")}</span>
-                {(activeColorwayObject.id === "Auto" && activeColorwayObject.sourceType === "auto") ? <span style={{ color: "var(--text-muted)", fontWeight: 500, fontSize: 12 }}>{"Auto Colors: " + (activeAutoPreset ? getAutoPresets()[activeAutoPreset].name : "None")}</span> : <></>}
+                <span style={{ color: "var(--text-muted)", fontWeight: 500, fontSize: 12 }}>{"Current Colorway: " + (activeColorwayObject.id || "None")}{(activeColorwayObject.id === "Auto" && activeColorwayObject.sourceType === "auto") ? ` (${getAutoPresets()[activeAutoPreset].name})` : ""}</span>
             </>
         }>
         {({ onMouseEnter, onMouseLeave, isActive, onClick }) => {

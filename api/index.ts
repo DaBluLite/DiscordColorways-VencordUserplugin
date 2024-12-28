@@ -8,8 +8,8 @@ import * as $Contexts from "./Contexts";
 import * as $DataStore from "./DataStore";
 import * as $Discord from "./Discord";
 import * as $Dispatcher from "./Dispatcher";
+import * as $ExpressionParser from "./ExpressionsParser";
 import * as $Hooks from "./Hooks";
-import $HTMLColorwayElement from "./HTMLColorwayElement";
 import * as $LayerManager from "./LayerManager";
 import * as $Presets from "./Presets";
 import * as $Styles from "./Styles";
@@ -26,7 +26,7 @@ export const Utils = $Utils;
 export const LayerManager = $LayerManager;
 export const Discord = $Discord;
 export const Presets = $Presets;
-export class HTMLColorwayElement extends $HTMLColorwayElement { }
+export const ExpressionParser = $ExpressionParser;
 
 export class Logger {
     static makeTitle(color: string, title: string): [string, ...string[]] {

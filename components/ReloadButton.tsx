@@ -49,17 +49,6 @@ export default function ({
                     })).catch(() => ({ colorways: [] as Colorway[], presets: [] as Preset[], source: res.name, type: "online" }))
                 )) as { type: "online" | "offline", source: string, colorways: Colorway[]; }[]);
 
-        colorwayData.find(d => d.source === "Project Colorway")!.presets?.forEach(preset => {
-            if (preset.name === "Discord" && preset.author === "DaBluLite") Contexts.setContext("colorwaysDiscordPreset", {
-                name: "Discord",
-                source: "Built-In",
-                sourceType: "builtin",
-                author: "DaBluLite",
-                css: preset.css,
-                conditions: preset.conditions
-            });
-        });
-
         setShowSpinner(false);
     }
 

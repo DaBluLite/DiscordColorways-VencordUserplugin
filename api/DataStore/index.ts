@@ -110,6 +110,22 @@ export function getMany<T = any>(
 }
 
 /**
+ * Get multiple values by their keys
+ *
+ * @param keys
+ * @param customStore Method to get a custom store. Use with caution (see the docs).
+ */
+export function getManyNamed<T = any>(
+    keys: IDBValidKey[],
+    customStore = defaultGetStore(),
+): Promise<[IDBValidKey, T][]> {
+    if (window.BdApi) return Promise.all(keys.map(key => [key, window.BdApi.Data.load("DiscordColorways", key)]));
+    return customStore("readonly", store =>
+        Promise.all(keys.map(key => Promise.all([new Promise(resolve => resolve(key)) as Promise<IDBValidKey>, promisifyRequest(store.get(key))]))),
+    );
+}
+
+/**
  * Update a value. This lets you see the old value and update it as an atomic operation.
  *
  * @param key

@@ -1,4 +1,10 @@
-[data-theme="discord-vr"] .dc-switch {
+/*
+ * Vencord, a Discord client mod
+ * Copyright (c) 2024 Vendicated and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+export default `[data-theme="discord-vr"] .dc-switch {
     height: 28px;
     border-radius: 16px;
     width: 44px;
@@ -338,3 +344,4 @@
     color: var(--interactive-active);
     background-color: var(--background-modifier-selected);
 }
+`;

@@ -9,6 +9,8 @@ import openChangelogModal from "../../components/Modals/openChangelogModal";
 import { colorwayVarRegex, defaultColorwaySource, nullColorwayObj } from "../../constants";
 import { Colorway, ColorwayObject, Context, ContextKey, Preset, PresetObject, SourceObject } from "../../types";
 import { DataStore, Dispatcher } from "../";
+import { sanitisePreset } from "../Styles";
+import { getAllRegexMatches } from "../Utils";
 
 const defaultPreset: Preset = {
     name: "Discord",
@@ -281,6 +283,8 @@ export const contexts: {
     themePresets: Preset[];
     activePresetObject: PresetObject;
     colorwaysDiscordPreset: Preset;
+    colorwayThemes: [filename: string, css: string][];
+    enabledColorwayThemes: Record<string, boolean>;
 } = {
     colorwaysPluginTheme: "discord",
     colorwaySourceFiles: [],
@@ -294,37 +298,43 @@ export const contexts: {
     colorwaysManagerAutoconnectPeriod: 3000,
     hasManagerRole: false,
     isConnected: false,
-    boundKey: { "00000000": `discord.${Math.random().toString(16).slice(2)}.${new Date().getUTCMilliseconds()}` },
+    boundKey: {
+        "00000000": `discord.${Math.random().toString(16).slice(2)}.${new Date().getUTCMilliseconds()}`
+    },
     colorwaysBoundManagers: [],
     discordColorwaysData: {
-        version: "8.0.1",
+        version: "8.1.0",
         UIVersion: "3.0.0"
     },
     themePresets: [],
-    activePresetObject: { id: defaultPreset.name, source: defaultPreset.source, sourceType: defaultPreset.sourceType, css: defaultPreset.css, conditions: defaultPreset.conditions },
-    colorwaysDiscordPreset: defaultPreset
+    activePresetObject: {
+        id: defaultPreset.name,
+        source: defaultPreset.source,
+        sourceType: defaultPreset.sourceType,
+        css: defaultPreset.css,
+        conditions: defaultPreset.conditions
+    },
+    colorwaysDiscordPreset: defaultPreset,
+    colorwayThemes: [],
+    enabledColorwayThemes: {}
 };
 
 export const unsavedContexts = ["themePresets", "isConnected", "boundKey", "hasManagerRole", "colorwayData"];
 
-const contextKeys = Object.keys(contexts).filter(key => unsavedContexts.includes(key) === false);
+const contextKeys: ContextKey[] = (Object.keys(contexts) as ContextKey[]).filter((key: ContextKey) => unsavedContexts.includes(key) === false);
 
 export async function initContexts() {
-    const data = await DataStore.getMany(contextKeys);
+    const data = await DataStore.getManyNamed(contextKeys);
 
-    contextKeys.forEach(async (key, i) => {
-        if (data[i] === undefined) {
-            DataStore.set(key, contexts[key]);
-            if (key === "discordColorwaysData") {
-                openChangelogModal();
-            }
+    data.forEach(async ([key, value]) => {
+        if (value === undefined) {
+            DataStore.set(key, contexts[String(key)]);
+            if (key === "discordColorwaysData") openChangelogModal();
         } else {
-            if (key === "discordColorwaysData" && (data[i].version !== contexts.discordColorwaysData.version)) {
-                await DataStore.set(key, { ...data[i], version: contexts.discordColorwaysData.version });
+            if (key === "discordColorwaysData" && (value.version !== contexts.discordColorwaysData.version)) {
+                await DataStore.set(key, { ...value, version: contexts.discordColorwaysData.version });
                 openChangelogModal();
-            } else {
-                contexts[key] = data[i];
-            }
+            } else contexts[String(key)] = value;
         }
     });
 
@@ -342,9 +352,7 @@ export async function initContexts() {
             setContext("themePresets", [
                 ...contexts.themePresets, {
                     name: theme.name,
-                    css: `:root:root {\n ${[
-                        ...(css.match(colorwayVarRegex) || []).map(decl => (`--${decl.split(" ")[1]}: ${decl.split("@colorwayVar " + decl.split(" ")[1] + " ")[1]};`)),
-                    ].join("\n  ")}\n}`,
+                    css: `:root:root {\n ${getAllRegexMatches(colorwayVarRegex, css).map(decl => `--${decl[1]}: ${sanitisePreset(decl[2])};`).join("\n  ")}\n}`,
                     author: theme.author,
                     sourceType: "theme",
                     source: theme.name
@@ -356,29 +364,34 @@ export async function initContexts() {
     contexts.colorwayData = await Promise.all(
         responses
             .map((res, i) => ({ response: res, name: contexts.colorwaySourceFiles[i].name }))
-            .map((res: { response: Response, name: string; }) =>
-                res.response.json().then(dt => ({
-                    colorways: (dt.colorways || []), presets: (dt.presets || [] as Preset[]).filter(preset => {
-                        if (preset.name === "Discord" && preset.author === "DaBluLite" && res.response.url === defaultColorwaySource) {
-                            contexts.colorwaysDiscordPreset = {
-                                name: "Discord",
-                                source: "Built-In",
-                                sourceType: "builtin",
-                                author: "DaBluLite",
-                                css: preset.css,
-                                conditions: preset.conditions
-                            };
-                            return false;
-                        }
-                        return true;
-                    }), source: res.name, type: "online"
-                })).catch(() => ({ colorways: [] as Colorway[], presets: [] as Preset[], source: res.name, type: "online" }))
-            )) as { type: "online" | "offline", source: string, colorways: Colorway[]; }[];
+            .map(({ response, name }: { response: Response, name: string; }) =>
+                response
+                    .json()
+                    .then(dt => ({
+                        colorways: (dt.colorways || []), presets: (dt.presets || [] as Preset[]).filter(preset => {
+                            if (preset.name === "Discord" && preset.author === "DaBluLite" && response.url === defaultColorwaySource) {
+                                contexts.colorwaysDiscordPreset = {
+                                    name: "Discord",
+                                    source: "Built-In",
+                                    sourceType: "builtin",
+                                    author: "DaBluLite",
+                                    css: preset.css,
+                                    conditions: preset.conditions
+                                };
+                                return false;
+                            }
+                            return true;
+                        }), source: name, type: "online"
+                    }))
+                    .catch(() => ({ colorways: [] as Colorway[], presets: [] as Preset[], source: name, type: "online" }))
+            )
+    ) as { type: "online" | "offline", source: string, colorways: Colorway[]; }[];
 
     Object.keys(contexts).forEach(c => {
         Dispatcher.dispatch("COLORWAYS_CONTEXT_UPDATED", {
             c,
-            value: contexts[c]
+            value: contexts[c],
+            contexts
         });
     });
 
@@ -390,6 +403,7 @@ export function setContext<C extends keyof typeof contexts>(context: C, value: t
     Dispatcher.dispatch("COLORWAYS_CONTEXT_UPDATED", {
         c: context,
         value: value,
+        contexts
     });
     save && DataStore.set(context, value);
     return value;

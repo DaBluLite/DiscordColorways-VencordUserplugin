@@ -56,8 +56,8 @@ function ChangelogModal({
         <div className="dc-footer-note">Join our Discord Server for more updates!</div>
     </div>;
 
-    return <Modal divider={false} style={{ width: "532px" }} title={<div style={{ display: "flex", flexDirection: "column" }}>{title}<span className="dc-modal-header-subtitle">Version {discordColorwaysData.version}</span></div>} type="normal" modalProps={modalProps} onFinish={({ closeModal }) => closeModal()} footer={<Footer />}>
-        {video ? <Video src={video} poster={poster} /> : <img src={image} className="bd-changelog-poster" />}
+    return <Modal divider={false} title={<div style={{ display: "flex", flexDirection: "column" }}>{title}<span className="dc-modal-header-subtitle">Version {discordColorwaysData.version}</span></div>} type="normal" modalProps={modalProps} onFinish={({ closeModal }) => closeModal()} footer={<Footer />}>
+        {video ? <Video src={video} poster={poster} /> : <img src={image} width={500} className="bd-changelog-poster" />}
         {description.split("\n").map(d => <p className="dc-changelog-desc">{d}</p>)}
         {changes.map(change => <>
             <h2 className={`dc-changelog-title dc-changelog-title-${change.type}`}><span>{change.title} </span></h2>
@@ -68,4 +68,4 @@ function ChangelogModal({
     </Modal>;
 }
 
-export default () => openModal(props => <ChangelogModal modalProps={props} title="What's new" image="https://repository-images.githubusercontent.com/788805704/225292b3-b134-4a0f-902d-7ef90143e64f" {...changelog} />);
+export default () => openModal(props => <ChangelogModal modalProps={props} title="What's new" image="https://github.com/DaBluLite/DiscordColorways/blob/master/banner.png?raw=true" {...changelog} />);

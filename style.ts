@@ -1,4 +1,10 @@
-/* stylelint-disable unknownAtRules */
+/*
+ * Vencord, a Discord client mod
+ * Copyright (c) 2024 Vendicated and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+export default `/* stylelint-disable unknownAtRules */
 /* stylelint-disable property-no-vendor-prefix */
 /* stylelint-disable function-linear-gradient-no-nonstandard-direction */
 /* stylelint-disable color-function-notation */
@@ -1345,6 +1351,7 @@
     display: flex;
     align-items: center;
     margin-top: 40px;
+    max-width: 500px;
 }
 
 .dc-changelog-title::after {
@@ -1389,6 +1396,7 @@
 
 .dc-changes-list {
     margin: 20px 0 8px 20px;
+    max-width: 480px;
 }
 
 .dc-change {
@@ -1487,6 +1495,10 @@
     }
 }
 
+.dc-changelog-desc {
+    max-width: 500px;
+}
+
 .dc-select-popout {
     position: absolute;
     min-height: 0;
@@ -1547,3 +1559,4 @@
     border-radius: 4px;
     position: relative;
 }
+`;

@@ -292,7 +292,7 @@ export function gradientBase(colors: { accent?: string, primary?: string, second
     colors.primary ??= "#313338";
     colors.secondary ??= "#2b2d31";
     colors.tertiary ??= "#1e1f22";
-    colors.accent ??= "#ffffff";
+    colors.accent ??= "#5865f2";
 
     return `@import url(//dablulite.github.io/css-snippets/NitroThemesFix/import.css);
 ${generateCss({ ...colors, primary: hslToHex(HexToHSL(colors.primary)[0], HexToHSL(colors.primary)[1] === 0 ? 0 : 24, 17), secondary: hslToHex(HexToHSL(colors.secondary)[0], HexToHSL(colors.secondary)[1] === 0 ? 0 : 24, 12), tertiary: hslToHex(HexToHSL(colors.tertiary)[0], HexToHSL(colors.tertiary)[1] === 0 ? 0 : 24, 7) }, tintedText, discordSaturation, mutedTextBrightness, name)}

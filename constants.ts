@@ -364,7 +364,9 @@ export const themes = [
     }
 ];
 
-export const colorwayVarRegex = /@colorwayVar [a-z-]* (colorway\((accent|primary|secondary|tertiary)(|-(h|s|l))\)|\{\{(accent|primary|secondary|tertiary)(|-(h|s|l))\}\}|.)+/g;
+export const colorwayVarRegex = /@colorwayVar ([a-z-]*?) (.*)/g;
+
+export const colorwayDefaultRegex = /@colorwayDefault (accent|primary|secondary|tertiary) (#(?:[0-9a-fA-F]{3}){1,2})/g;
 
 export const functs: { name: string, value: PresetConditionFunction; }[] = [
     { name: "Equal To", value: "equal" },

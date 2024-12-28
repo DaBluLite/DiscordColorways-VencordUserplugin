@@ -35,3 +35,13 @@ export function getWsClientIdentity() {
     if (window.BdApi) return "betterdiscord";
     return "discord";
 }
+
+export function getAllRegexMatches(regex: RegExp, str: string): RegExpExecArray[] {
+    let myArray: RegExpExecArray | null;
+
+    const indexes: RegExpExecArray[] = [];
+
+    while ((myArray = regex.exec(str)) !== null) indexes.push(myArray);
+
+    return indexes;
+}

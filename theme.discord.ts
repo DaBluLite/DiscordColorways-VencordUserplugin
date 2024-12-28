@@ -1,4 +1,10 @@
-/* stylelint-disable color-function-notation */
+/*
+ * Vencord, a Discord client mod
+ * Copyright (c) 2024 Vendicated and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+export default `/* stylelint-disable color-function-notation */
 /* stylelint-disable custom-property-pattern */
 /* stylelint-disable no-descending-specificity */
 .dc-app-root[data-theme="discord"] {
@@ -379,3 +385,4 @@
     color: var(--interactive-active);
     background-color: var(--background-modifier-selected);
 }
+`;

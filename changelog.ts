@@ -17,23 +17,7 @@ const changelog: {
             title: "Added",
             type: "added",
             items: [
-                "Online sources now report the number of their colorways and presets"
-            ]
-        },
-        {
-            title: "Bug Fixes",
-            type: "fixed",
-            items: [
-                "Fixed various bugs with the new Dispatcher API",
-                "Fixed \"Save Preset As...\" modal"
-            ]
-        },
-        {
-            title: "Changes",
-            type: "improved",
-            items: [
-                "Moved location of project links below logo",
-                "Removed total colorway counter from settings",
+                "You can now use BetterDiscord compatible themes from DiscordColorways. This will come useful for Colorway Themes"
             ]
         }
     ]

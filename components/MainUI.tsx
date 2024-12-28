@@ -48,7 +48,7 @@ export default function (): JSX.Element | any {
                         }}
                         Icon={SelectorsIcon}
                         id={Tabs.Selector}
-                        title="Change Colorway/Preset"
+                        title="Change Colorway"
                         expanded={expanded}
                     />
                     <SidebarTab

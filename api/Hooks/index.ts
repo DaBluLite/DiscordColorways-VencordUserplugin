@@ -79,12 +79,12 @@ export function useContexts(): typeof contexts {
     return get;
 }
 
-export function simpleContext<Key extends ContextKey>(context: Key, options: { save: boolean, listen: boolean; } = { save: true, listen: true }): [() => Context<Key>, (newVal: Context<Key>) => void, () => void, (context: ContextKey, callback: <Key extends ContextKey>(context: Key, value: Context<Key>) => void) => void] {
+export function simpleContext<Key extends ContextKey>(context: Key, save = true): [() => Context<Key>, (newVal: Context<Key>) => void, () => void, (context: ContextKey, callback: <Key extends ContextKey>(context: Key, value: Context<Key>) => void) => void] {
     let val: Context<Key> = contexts[context] as Context<Key>;
     let events: Partial<Events> = {};
 
     const set = (value: Context<Key>) => {
-        val = setContext(context, value, options.save) as Context<Key>;
+        val = setContext(context, value, save) as Context<Key>;
     };
 
     function callEvts({ c, value }: { c: Key, value: Context<Key>; }) {
