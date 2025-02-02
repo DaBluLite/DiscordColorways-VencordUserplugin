@@ -1,13 +1,7 @@
 /*
  * Vencord, a Discord client mod
- * Copyright (c) 2024 Vendicated and contributors
+ * Copyright (c) 2025 Vendicated and contributors
  * SPDX-License-Identifier: GPL-3.0-or-later
- */
-
-/*
- * DiscordColorways, a Discord theming plugin
- * Copyright (c) 2024 Project Colorway and contributors
- * SPDX-License-Identifier: GPL-3.0
  */
 
 // Plugin Imports

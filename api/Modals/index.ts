@@ -4,7 +4,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { waitForModule } from "../..";
+import { filters, mapMangledModuleLazy } from "@webpack";
+
 import { ModalOptions, RenderFunction } from "../../types";
 
 type FilterFn = (mod: any) => boolean;
@@ -17,14 +18,19 @@ function byProps(...props: PropsFilter): FilterFn {
         : m => props.every(p => m[p] !== void 0);
 }
 
-let ModalAPI: {
+type ModalAPI = {
     openModalLazy(render: () => Promise<RenderFunction>, options?: ModalOptions & { contextKey?: string; }): Promise<string>,
     openModal(render: RenderFunction, options?: ModalOptions, contextKey?: string): string,
     closeModal(modalKey: string, contextKey?: string): void,
     closeAllModals(): void;
 };
 
-waitForModule(byProps("openModalLazy"), m => ModalAPI = m);
+export const ModalAPI: ModalAPI = mapMangledModuleLazy(".modalKey?", {
+    openModalLazy: filters.byCode(".modalKey?"),
+    openModal: filters.byCode(",instant:"),
+    closeModal: filters.byCode(".onCloseCallback()"),
+    closeAllModals: filters.byCode(".getState();for")
+});
 
 /**
  * Wait for the render promise to resolve, then open a modal with it.
