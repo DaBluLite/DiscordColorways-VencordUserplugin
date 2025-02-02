@@ -4,8 +4,27 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { ModalAPI } from "../..";
+import { waitForModule } from "../..";
 import { ModalOptions, RenderFunction } from "../../types";
+
+type FilterFn = (mod: any) => boolean;
+
+type PropsFilter = Array<string>;
+
+function byProps(...props: PropsFilter): FilterFn {
+    return props.length === 1
+        ? m => m[props[0]] !== void 0
+        : m => props.every(p => m[p] !== void 0);
+}
+
+let ModalAPI: {
+    openModalLazy(render: () => Promise<RenderFunction>, options?: ModalOptions & { contextKey?: string; }): Promise<string>,
+    openModal(render: RenderFunction, options?: ModalOptions, contextKey?: string): string,
+    closeModal(modalKey: string, contextKey?: string): void,
+    closeAllModals(): void;
+};
+
+waitForModule(byProps("openModalLazy"), m => ModalAPI = m);
 
 /**
  * Wait for the render promise to resolve, then open a modal with it.

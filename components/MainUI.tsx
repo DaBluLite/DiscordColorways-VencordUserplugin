@@ -17,8 +17,15 @@ import SourceManager from "./SettingsTabs/SourceManager";
 import SidebarTab from "./SidebarTab";
 import Tooltip from "./Tooltip";
 
-export default function (): JSX.Element | any {
-    const [activeTab, setActiveTab] = useState<Tabs>(Tabs.Selector);
+export default function ({
+    tab = Tabs.Selector,
+    subTab = "Colorways"
+}: ({ tab?: Tabs.Selector; subTab?: "Colorways" | "Presets" | "Themes"; } |
+{ tab?: Tabs.Settings; subTab?: "Settings" | "History"; } |
+{ tab?: Tabs.Sources; subTab?: "Installed" | "Discover"; }
+    )): React.JSX.Element | any {
+    const [activeTab, setActiveTab] = useState<Tabs>(tab);
+    const [activeSubTab, setActiveSubTab] = useState<string>(subTab);
     const cont = useRef(null);
     const contexts = Hooks.useContexts();
     const [expanded, setExpanded] = useState(false);
@@ -45,6 +52,7 @@ export default function (): JSX.Element | any {
                         onSelect={id => {
                             setActiveTab(id);
                             setExpanded(false);
+                            setActiveSubTab("Colorways");
                         }}
                         Icon={SelectorsIcon}
                         id={Tabs.Selector}
@@ -56,6 +64,7 @@ export default function (): JSX.Element | any {
                         onSelect={id => {
                             setActiveTab(id);
                             setExpanded(false);
+                            setActiveSubTab("Settings");
                         }}
                         Icon={CogIcon}
                         id={Tabs.Settings}
@@ -67,6 +76,7 @@ export default function (): JSX.Element | any {
                         onSelect={id => {
                             setActiveTab(id);
                             setExpanded(false);
+                            setActiveSubTab("Installed");
                         }}
                         Icon={WidgetsPlusIcon}
                         id={Tabs.Sources}
@@ -124,9 +134,9 @@ export default function (): JSX.Element | any {
                     </div>
                 </div>
                 <div className="dc-modal-content" style={{ width: "100%" }}>
-                    {activeTab === Tabs.Selector && <Selector />}
-                    {activeTab === Tabs.Sources && <SourceManager />}
-                    {activeTab === Tabs.Settings && <SettingsPage />}
+                    {activeTab === Tabs.Selector && <Selector tab={activeSubTab} />}
+                    {activeTab === Tabs.Sources && <SourceManager tab={activeSubTab} />}
+                    {activeTab === Tabs.Settings && <SettingsPage tab={activeSubTab} />}
                 </div>
             </div>
         </FocusLock>

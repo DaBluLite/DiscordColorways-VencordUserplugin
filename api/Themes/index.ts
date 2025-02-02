@@ -36,6 +36,7 @@ export interface UserThemeHeader {
     website?: string;
     invite?: string;
     colorwayVars?: [string, string][];
+    colorwaySettings?: Record<string, any>;
 }
 
 function makeHeader(fileName: string, opts: Partial<UserThemeHeader> = {}): UserThemeHeader {
@@ -49,7 +50,8 @@ function makeHeader(fileName: string, opts: Partial<UserThemeHeader> = {}): User
         source: opts.source,
         website: opts.website,
         invite: opts.invite,
-        colorwayVars: opts.colorwayVars
+        colorwayVars: opts.colorwayVars,
+        colorwaySettings: opts.colorwaySettings
     };
 }
 
@@ -66,8 +68,10 @@ export function getThemeInfo(css: string, fileName: string): UserThemeHeader {
     const block = css.split("/**", 2)?.[1]?.split("*/", 1)?.[0];
     if (!block) return makeHeader(fileName);
 
-    const header: Partial<UserThemeHeader> = {};
-    const colorwayVars: [string, string][] = [];
+    const header: Partial<UserThemeHeader> = {
+        colorwayVars: [],
+        colorwaySettings: {}
+    };
     let field = "";
     let accum = "";
     for (const line of block.split(splitRegex)) {
@@ -76,9 +80,11 @@ export function getThemeInfo(css: string, fileName: string): UserThemeHeader {
             header[field] = accum.trim();
             const l = line.indexOf(" ");
             field = line.substring(1, l);
-            console.log(line);
             if (field === "colorwayVar" && header[field] !== undefined) {
-                colorwayVars.push([header[field].split(" ")[0], header[field].split(header[field].split(" ")[0] + " ")[1]]);
+                (header.colorwayVars as [string, string][]).push([header[field].split(" ")[0], header[field].split(header[field].split(" ")[0] + " ")[1]]);
+            }
+            if (field === "colorwaySetting" && header[field] !== undefined) {
+                (header.colorwaySettings as Record<string, any>)[header[field].split(" ")[0]] = header[field].split(header[field].split(" ")[0] + " ")[1] === "false" ? false : (header[field].split(header[field].split(" ")[0] + " ")[1] === "true" ? true : header[field].split(header[field].split(" ")[0] + " ")[1]);
             }
             accum = line.substring(l + 1);
         }
@@ -88,7 +94,6 @@ export function getThemeInfo(css: string, fileName: string): UserThemeHeader {
     }
     header[field] = accum.trim();
     delete header[""];
-    header.colorwayVars = colorwayVars;
     return makeHeader(fileName, header);
 }
 

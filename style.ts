@@ -1145,6 +1145,23 @@ export default `/* stylelint-disable unknownAtRules */
     filter: brightness(.8);
 }
 
+.dc-contextmenu-label {
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 32px;
+    padding: 6px 8px;
+    color: var(--interactive-normal);
+    border-color: var(--interactive-normal);
+    text-transform: uppercase;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 12px;
+    padding-top: 4px;
+    padding-bottom: 0;
+}
+
 .dc-switch-handle {
     transition: 0.2s;
     display: block;
@@ -1328,6 +1345,7 @@ export default `/* stylelint-disable unknownAtRules */
 .dc-circle-selection-check {
     position: absolute;
     right: 0;
+    color: var(--brand-500);
 }
 
 .dc-color-swatch-selectable {

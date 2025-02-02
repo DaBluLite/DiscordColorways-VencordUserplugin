@@ -25,23 +25,22 @@ import Switch from "../Switch";
 import TabBar from "../TabBar";
 import Tooltip from "../Tooltip";
 
-export default function () {
-    const items = [
-        {
-            name: "Settings",
-            component: () => <Settings />
-        },
-        {
-            name: "History",
-            component: () => <History />
-        }
-    ];
-    const [active, setActive] = useState<typeof items[number]["name"]>(items[0].name);
+export default function ({ tab = "Settings" }: { tab: string; }) {
+    const [active, setActive] = useState(tab);
 
     return <TabBar
         active={active}
         container={({ children }) => <div className="dc-page-header">{children}</div>}
-        items={items}
+        items={[
+            {
+                name: "Settings",
+                component: () => <Settings />
+            },
+            {
+                name: "History",
+                component: () => <History />
+            }
+        ]}
         onChange={setActive}
     />;
 }

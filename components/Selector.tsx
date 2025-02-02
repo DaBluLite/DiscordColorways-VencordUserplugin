@@ -997,8 +997,8 @@ function Themes() {
     </>;
 }
 
-export default function () {
-    const [active, setActive] = useState("Colorways");
+export default function ({ tab = "Colorways" }: { tab: string; }) {
+    const [active, setActive] = useState(tab);
     return <TabBar
         active={active}
         onChange={setActive}

@@ -23,7 +23,7 @@ export function setStyle(id: string, css: string): void {
             textContent: css
         }));
     } else {
-        document.getElementById(id).textContent = css;
+        (document.getElementById(id) as HTMLStyleElement).textContent = css;
     }
 }
 
@@ -34,7 +34,7 @@ export function setStyle(id: string, css: string): void {
  */
 export function removeStyle(id: string): boolean {
     if (document.getElementById(id)) {
-        document.getElementById(id).remove();
+        (document.getElementById(id) as HTMLStyleElement).remove();
         return true;
     } else {
         return false;

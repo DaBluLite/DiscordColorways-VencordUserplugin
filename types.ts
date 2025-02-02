@@ -110,6 +110,16 @@ export interface Preset {
     conditions?: PresetCondition[];
 }
 
+export interface PresetCondition {
+    if: string;
+    is: PresetConditionFunction;
+    than: string;
+    onCondition: string;
+    onConditionElse?: string;
+}
+
+export type PresetConditionFunction = "greaterThan" | "lowerThan" | "equal";
+
 export interface PresetObject {
     id: string;
     css: string;
@@ -125,16 +135,6 @@ export const enum Tabs {
     WsConnection,
     ExpandSidebar
 }
-
-export interface PresetCondition {
-    if: string;
-    is: PresetConditionFunction;
-    than: string;
-    onCondition: string;
-    onConditionElse?: string;
-}
-
-export type PresetConditionFunction = "greaterThan" | "lowerThan" | "equal";
 
 export type ColorValue = typeof colorVals[number]["value"];
 

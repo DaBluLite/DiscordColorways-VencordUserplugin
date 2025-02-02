@@ -11,15 +11,13 @@
  */
 
 // Plugin Imports
-import { addAccessory, removeAccessory } from "@api/MessageAccessories";
 import { addServerListElement, removeServerListElement, ServerListRenderPosition } from "@api/ServerList";
 import { Devs } from "@utils/constants";
 import { getIntlMessage } from "@utils/discord";
 import definePlugin from "@utils/types";
-import { findByPropsLazy } from "@webpack";
+export { waitFor as waitForModule } from "@webpack";
 
 import { Discord } from "./api";
-import ColorwayID from "./components/ColorwayID";
 import ColorwaysButton from "./components/ColorwaysButton";
 // Mod-specific imports
 export {
@@ -35,12 +33,10 @@ export {
     useReducer,
     useRef,
     UserStore,
-    useState,
+    useState
 } from "@webpack/common";
 
 export const { getThemesList, getThemeData } = VencordNative.themes;
-
-export const ModalAPI = findByPropsLazy("openModalLazy");
 
 export default definePlugin({
     name: "DiscordColorways",
@@ -122,12 +118,10 @@ export default definePlugin({
         Discord.start();
 
         // Vencord-Specific
-        addAccessory("colorways-btn", props => <ColorwayID props={props} />);
         addServerListElement(ServerListRenderPosition.Above, () => <ColorwaysButton />);
     },
     stop() {
         removeServerListElement(ServerListRenderPosition.Above, () => <ColorwaysButton />);
-        removeAccessory("colorways-btn");
         Discord.stop();
     },
 });

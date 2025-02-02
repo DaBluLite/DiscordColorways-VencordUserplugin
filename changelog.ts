@@ -11,13 +11,13 @@ const changelog: {
         items: string[];
     }[];
 } = {
-    description: "DiscordColorways is rapidly growing into a very complex app that has a lot of things to take care of. This update will keep things running smoothly.",
+    description: "Just a maintenance update with a few bug fixes.",
     changes: [
         {
-            title: "Added",
-            type: "added",
+            title: "Improved",
+            type: "improved",
             items: [
-                "You can now use BetterDiscord compatible themes from DiscordColorways. This will come useful for Colorway Themes"
+                "Overall stability improvements"
             ]
         }
     ]

@@ -5,16 +5,25 @@
  */
 
 import { useEffect, useRef, useState } from "..";
+import RightClickContextMenu from "./RightClickContextMenu";
 import Tooltip from "./Tooltip";
 
 export default function ({
     children,
     tooltip,
-    hasPill = false
+    hasPill = false,
+    menu
 }: {
-    children: (props: { onMouseEnter: React.MouseEventHandler<HTMLDivElement>; onMouseLeave: React.MouseEventHandler<HTMLDivElement>; isActive: (e: boolean) => void, onClick: React.MouseEventHandler<HTMLDivElement>; }) => JSX.Element,
+    children(props: {
+        onMouseEnter: React.MouseEventHandler<HTMLDivElement>;
+        onMouseLeave: React.MouseEventHandler<HTMLDivElement>;
+        isActive: (e: boolean) => void,
+        onClick: React.MouseEventHandler<HTMLDivElement>;
+        onContextMenu: React.MouseEventHandler<HTMLDivElement>;
+    }): JSX.Element,
     tooltip?: JSX.Element,
-    hasPill?: boolean;
+    hasPill?: boolean,
+    menu?: React.ReactNode;
 }) {
     const [status, setStatus] = useState("none");
     const btn = useRef(null);
@@ -34,23 +43,33 @@ export default function ({
         };
     }, []);
 
-    return <Tooltip text={tooltip || <></>} position="right">
-        {({ onMouseEnter, onMouseLeave, onClick }) => {
-            return <div ref={btn} className="dc-discordserverlist-listitem">
-                {hasPill ? <div className="dc-discordserverlist-listitem-pill" data-status={status} /> : <></>}
-                {children({
-                    onMouseEnter: e => {
-                        tooltip && onMouseEnter({ ...e, currentTarget: btn.current as unknown as EventTarget & HTMLDivElement });
-                        status !== "active" ? setStatus("hover") : void 0;
-                    },
-                    onMouseLeave: e => {
-                        tooltip && onMouseLeave(e);
-                        status !== "active" ? setStatus("none") : void 0;
-                    },
-                    isActive: stat => setStatus(stat ? "active" : "none"),
-                    onClick: e => tooltip && onClick(e)
-                })}
-            </div>;
-        }}
-    </Tooltip>;
+    return <RightClickContextMenu
+        menu={menu}
+    >
+        {({ onContextMenu }) => <Tooltip text={tooltip || <></>} position="right">
+            {({ onMouseEnter, onMouseLeave, onClick }) => {
+                return <div ref={btn} className="dc-discordserverlist-listitem">
+                    {hasPill ? <div className="dc-discordserverlist-listitem-pill" data-status={status} /> : <></>}
+                    {children({
+                        onMouseEnter(e) {
+                            tooltip && onMouseEnter({ ...e, currentTarget: btn.current as unknown as EventTarget & HTMLDivElement });
+                            status !== "active" ? setStatus("hover") : void 0;
+                        },
+                        onMouseLeave(e) {
+                            tooltip && onMouseLeave(e);
+                            status !== "active" ? setStatus("none") : void 0;
+                        },
+                        isActive(stat) { setStatus(stat ? "active" : "none"); },
+                        onClick(e) {
+                            tooltip && onClick(e);
+                            setStatus("none");
+                        },
+                        onContextMenu(e) {
+                            if (menu) onContextMenu(e);
+                        }
+                    })}
+                </div>;
+            }}
+        </Tooltip>}
+    </RightClickContextMenu>;
 }

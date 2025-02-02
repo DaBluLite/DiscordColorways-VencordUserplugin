@@ -303,7 +303,7 @@ export const contexts: {
     },
     colorwaysBoundManagers: [],
     discordColorwaysData: {
-        version: "8.1.0",
+        version: "8.1.1",
         UIVersion: "3.0.0"
     },
     themePresets: [],
