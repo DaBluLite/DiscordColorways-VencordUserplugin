@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+export * as AST from "./AST";
 import * as $Contexts from "./Contexts";
 import * as $DataStore from "./DataStore";
 import * as $Discord from "./Discord";

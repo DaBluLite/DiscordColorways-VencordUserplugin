@@ -341,7 +341,7 @@ function Settings() {
                 marginBottom: "12px"
             }}
         >
-            Version {contexts.discordColorwaysData.version.split(".")[0]}{contexts.discordColorwaysData.version.split(".")[1] !== "0" ? `.${contexts.discordColorwaysData.version.split(".")[1]}` : ""}{contexts.discordColorwaysData.version.split(".")[2] !== "0" ? ` (Patch ${contexts.discordColorwaysData.version.split(".")[2]})` : ""}
+            Version {contexts.discordColorwaysData.version.split(".")[0]}{contexts.discordColorwaysData.version.split(".")[1] !== "0" ? `.${contexts.discordColorwaysData.version.split(".")[1]}` : ""}{contexts.discordColorwaysData.version.split(".")[2] !== "0" ? ` (Patch ${contexts.discordColorwaysData.version.split(".")[2]} - Beta 1)` : ""}
         </span>
         <div style={{
             display: "flex",
