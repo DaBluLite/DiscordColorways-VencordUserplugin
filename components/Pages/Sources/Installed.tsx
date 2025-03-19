@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-/* eslint-disable react/jsx-key */
-
 import { Toasts, useEffect, useState } from "../../..";
 import { setContext } from "../../../api/Contexts";
 import { useContextualState } from "../../../api/Hooks";
@@ -23,7 +21,7 @@ import RightClickContextMenu from "../../RightClickContextMenu";
 import Spinner from "../../Spinner";
 import StaticOptionsMenu from "../../StaticOptionsMenu";
 
-function OnlineSourceMeta({ source, onComplete, fallback = "loading" }: {
+export function OnlineSourceMeta({ source, onComplete, fallback = "loading" }: {
     source: string, onComplete(props: {
         colorways?: Colorway[],
         presets?: Preset[];
@@ -234,12 +232,12 @@ export default function () {
                             return a.name.localeCompare(b.name);
                     }
                 })
-                .map((src: ({ name: string; } & ({ colorways?: Colorway[], presets?: Preset[], type: "offline"; } | { type: "online", url: string; })), i: number) => <RightClickContextMenu menu={<>
+                .map((src: ({ name: string; } & ({ colorways?: Colorway[], presets?: Preset[], type: "offline"; } | { type: "online", url: string; })), i: number) => <RightClickContextMenu key={i} menu={<>
                     {src.type === "online" ? <><button onClick={() => {
                         Clipboard.copy(src.url as string);
                         Toasts.show({
                             message: "Copied URL Successfully",
-                            type: 1,
+                            type: "success",
                             id: "copy-url-notify",
                         });
                     }} className="dc-contextmenu-item">

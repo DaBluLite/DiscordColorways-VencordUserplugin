@@ -15,19 +15,19 @@ export default function () {
         <div className="dc-contextmenu-label">Change...</div>
         <ContextMenuItem
             onClick={e => {
-                LayerManager.pushLayer(() => <MainUI tab={Tabs.Selector} subTab="Colorways" />);
+                LayerManager.pushLayer(() => <MainUI tab={Tabs.Colorways} />);
             }}>
             Colorways
         </ContextMenuItem>
         <ContextMenuItem
             onClick={e => {
-                LayerManager.pushLayer(() => <MainUI tab={Tabs.Selector} subTab="Presets" />);
+                LayerManager.pushLayer(() => <MainUI tab={Tabs.Presets} />);
             }}>
             Presets
         </ContextMenuItem>
         <ContextMenuItem
             onClick={e => {
-                LayerManager.pushLayer(() => <MainUI tab={Tabs.Selector} subTab="Themes" />);
+                LayerManager.pushLayer(() => <MainUI tab={Tabs.Themes} />);
             }}>
             Themes
         </ContextMenuItem>
@@ -35,13 +35,13 @@ export default function () {
         <div className="dc-contextmenu-label">Settings</div>
         <ContextMenuItem
             onClick={e => {
-                LayerManager.pushLayer(() => <MainUI tab={Tabs.Settings} subTab="Settings" />);
+                LayerManager.pushLayer(() => <MainUI tab={Tabs.Settings} />);
             }}>
             Settings
         </ContextMenuItem>
         <ContextMenuItem
             onClick={e => {
-                LayerManager.pushLayer(() => <MainUI tab={Tabs.Settings} subTab="History" />);
+                LayerManager.pushLayer(() => <MainUI tab={Tabs.History} />);
             }}>
             Usage History
         </ContextMenuItem>
@@ -49,13 +49,13 @@ export default function () {
         <div className="dc-contextmenu-label">Sources</div>
         <ContextMenuItem
             onClick={e => {
-                LayerManager.pushLayer(() => <MainUI tab={Tabs.Sources} subTab="Installed" />);
+                LayerManager.pushLayer(() => <MainUI tab={Tabs.Sources} />);
             }}>
             Installed
         </ContextMenuItem>
         <ContextMenuItem
             onClick={e => {
-                LayerManager.pushLayer(() => <MainUI tab={Tabs.Sources} subTab="Discover" />);
+                LayerManager.pushLayer(() => <MainUI tab={Tabs.Discover} />);
             }}>
             Discover
         </ContextMenuItem>

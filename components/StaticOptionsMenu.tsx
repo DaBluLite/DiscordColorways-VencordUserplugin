@@ -5,7 +5,6 @@
  */
 
 import { useEffect, useState } from "..";
-import { Hooks } from "../api";
 
 export default function ({
     children,
@@ -13,8 +12,8 @@ export default function ({
     xPos = "left",
     yPos = "bottom"
 }: {
-    children: (props: { onClick: React.MouseEventHandler<HTMLButtonElement>; }) => JSX.Element,
-    menu: JSX.Element,
+    children: (props: { onClick: React.MouseEventHandler<HTMLButtonElement>; }) => React.ReactNode,
+    menu: React.ReactNode,
     xPos?: "left" | "right",
     yPos?: "top" | "bottom";
 }) {
@@ -44,8 +43,6 @@ export default function ({
         setShowMenu(false);
     }
 
-    const theme = Hooks.useTheme();
-
     function Menu() {
         useEffect(() => {
             window.addEventListener("click", onPageClick);
@@ -53,7 +50,7 @@ export default function ({
                 window.removeEventListener("click", onPageClick);
             };
         }, []);
-        return <nav data-theme={theme} className="dc-contextmenu" style={{
+        return <nav className="dc-contextmenu" style={{
             position: "fixed",
             top: `${pos.y}px`,
             ...(xPos === "left" ? { left: `${pos.x}px` } : { right: `${pos.x}px` })

@@ -4,83 +4,124 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { FocusLock, ThemeStore, useRef, useState } from "../";
+import { FocusLock, useEffect, useRef, useState } from "../";
 import { Dispatcher, Hooks, LayerManager } from "../api";
+import { openModal } from "../api/Modals";
 import { Clipboard } from "../api/Utils";
-import { themes } from "../constants";
 import { Tabs } from "../types";
-import { CaretIcon, CloseIcon, CogIcon, SelectorsIcon, WidgetsPlusIcon, WirelessErrorIcon, WirelessIcon } from "./Icons";
+import { CloseIcon, CodeIcon, CogIcon, CopyIcon, LinkIcon, PalleteIcon, SelectorsIcon, WidgetsPlusIcon, WirelessErrorIcon, WirelessIcon } from "./Icons";
+import GlobalSearch from "./Modals/GlobalSearch";
+import Colorways from "./Pages/Selector/Colorways";
+import Presets from "./Pages/Selector/Presets";
+import Themes from "./Pages/Selector/Themes";
+import History from "./Pages/Settings/History";
+import Main from "./Pages/Settings/Main";
+import Discover from "./Pages/Sources/Discover";
+import Installed from "./Pages/Sources/Installed";
 import RightClickContextMenu from "./RightClickContextMenu";
-import Selector from "./Selector";
-import SettingsPage from "./SettingsTabs/SettingsPage";
-import SourceManager from "./SettingsTabs/SourceManager";
 import SidebarTab from "./SidebarTab";
 import Tooltip from "./Tooltip";
 
 export default function ({
-    tab = Tabs.Selector,
-    subTab = "Colorways"
-}: ({ tab?: Tabs.Selector; subTab?: "Colorways" | "Presets" | "Themes"; } |
-{ tab?: Tabs.Settings; subTab?: "Settings" | "History"; } |
-{ tab?: Tabs.Sources; subTab?: "Installed" | "Discover"; }
-    )): React.JSX.Element | any {
+    tab = Tabs.Colorways
+}: { tab?: Tabs; }): React.JSX.Element | any {
     const [activeTab, setActiveTab] = useState<Tabs>(tab);
-    const [activeSubTab, setActiveSubTab] = useState<string>(subTab);
     const cont = useRef(null);
     const contexts = Hooks.useContexts();
-    const [expanded, setExpanded] = useState(false);
+    const expanded = true;
 
     const ConnectionIcon = contexts.isConnected ? WirelessIcon : WirelessErrorIcon;
 
+    useEffect(() => {
+        function openGlobalSearch(e: KeyboardEvent) {
+            if (e.ctrlKey && e.code === "KeyK") {
+                e.preventDefault();
+                openModal(props => <GlobalSearch modalProps={props} />);
+            }
+        }
+
+        window.addEventListener("keydown", openGlobalSearch);
+
+        return () => {
+            window.removeEventListener("keydown", openGlobalSearch);
+        };
+    }, []);
+
     return (
         <FocusLock containerRef={cont}>
-            <div ref={cont} className={`dc-app-root theme-${ThemeStore.theme} ${(themes.find(t => t.id === contexts.colorwaysPluginTheme)?.classes || []).join(" ")}`} data-theme={contexts.colorwaysPluginTheme}>
+            <div ref={cont} className="dc-app-root">
                 <div className="dc-app-sidebar">
-                    <div
-                        style={{
-                            height: "24px",
-                            minHeight: "unset",
-                            width: "50px"
-                        }}
-                        className={`dc-button dc-button-icon ${(expanded ? "dc-button-md" : "dc-button-xl")}`}
-                        onClick={() => setExpanded(!expanded)}
-                    >
-                        <CaretIcon width={expanded ? 18 : 24} height={expanded ? 18 : 24} />
-                    </div>
+                    <span className="dc-contextmenu-label">Colorways & Themes</span>
                     <SidebarTab
                         activeTab={activeTab}
                         onSelect={id => {
                             setActiveTab(id);
-                            setExpanded(false);
-                            setActiveSubTab("Colorways");
                         }}
                         Icon={SelectorsIcon}
-                        id={Tabs.Selector}
-                        title="Change Colorway"
+                        id={Tabs.Colorways}
+                        title="Colorways"
                         expanded={expanded}
                     />
                     <SidebarTab
                         activeTab={activeTab}
                         onSelect={id => {
                             setActiveTab(id);
-                            setExpanded(false);
-                            setActiveSubTab("Settings");
+                        }}
+                        Icon={CodeIcon}
+                        id={Tabs.Presets}
+                        title="Presets"
+                        expanded={expanded}
+                    />
+                    <SidebarTab
+                        activeTab={activeTab}
+                        onSelect={id => {
+                            setActiveTab(id);
+                        }}
+                        Icon={PalleteIcon}
+                        id={Tabs.Themes}
+                        title="Themes"
+                        expanded={expanded}
+                    />
+                    <span className="dc-contextmenu-label">Settings</span>
+                    <SidebarTab
+                        activeTab={activeTab}
+                        onSelect={id => {
+                            setActiveTab(id);
                         }}
                         Icon={CogIcon}
                         id={Tabs.Settings}
-                        title="Settings"
+                        title="General"
                         expanded={expanded}
                     />
                     <SidebarTab
                         activeTab={activeTab}
                         onSelect={id => {
                             setActiveTab(id);
-                            setExpanded(false);
-                            setActiveSubTab("Installed");
+                        }}
+                        Icon={CopyIcon}
+                        id={Tabs.History}
+                        title="History"
+                        expanded={expanded}
+                    />
+                    <span className="dc-contextmenu-label">Sources</span>
+                    <SidebarTab
+                        activeTab={activeTab}
+                        onSelect={id => {
+                            setActiveTab(id);
+                        }}
+                        Icon={LinkIcon}
+                        id={Tabs.Sources}
+                        title="Installed"
+                        expanded={expanded}
+                    />
+                    <SidebarTab
+                        activeTab={activeTab}
+                        onSelect={id => {
+                            setActiveTab(id);
                         }}
                         Icon={WidgetsPlusIcon}
-                        id={Tabs.Sources}
-                        title="Sources"
+                        id={Tabs.Discover}
+                        title="Discover"
                         expanded={expanded}
                     />
                     <div className="dc-divider" style={{ margin: "0" }} />
@@ -133,10 +174,14 @@ export default function ({
                         </div>
                     </div>
                 </div>
-                <div className="dc-modal-content" style={{ width: "100%" }}>
-                    {activeTab === Tabs.Selector && <Selector tab={activeSubTab} />}
-                    {activeTab === Tabs.Sources && <SourceManager tab={activeSubTab} />}
-                    {activeTab === Tabs.Settings && <SettingsPage tab={activeSubTab} />}
+                <div className="dc-mainui-container">
+                    {activeTab === Tabs.Colorways && <Colorways />}
+                    {activeTab === Tabs.Presets && <Presets />}
+                    {activeTab === Tabs.Themes && <Themes />}
+                    {activeTab === Tabs.Settings && <Main />}
+                    {activeTab === Tabs.History && <History />}
+                    {activeTab === Tabs.Sources && <Installed />}
+                    {activeTab === Tabs.Discover && <Discover />}
                 </div>
             </div>
         </FocusLock>

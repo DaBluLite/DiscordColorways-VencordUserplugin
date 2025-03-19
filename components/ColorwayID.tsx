@@ -14,16 +14,15 @@ import { PlusIcon } from "./Icons";
 import CreatorModal from "./Modals/SaveColorwayAsModal";
 
 export default function ({ props }) {
-    const theme = Hooks.useTheme();
     const [active, setActive] = Hooks.useContextualState("activeColorwayObject");
 
     if (String(props.message.content).match(/colorway:[0-9a-f]{0,100}/)) {
-        return <div className="dc-cid-wrapper" data-theme={theme}>
-            {String(props.message.content).match(/colorway:[0-9a-f]{0,100}/g)?.map((colorID: string) => {
+        return <div className="dc-cid-wrapper">
+            {String(props.message.content).match(/colorway:[0-9a-f]{0,100}/g)?.map((colorID: string, i: number) => {
                 colorID = hexToString(colorID.split("colorway:")[1]);
                 return <Colorway
+                    key={i}
                     id="colorway-IDCard"
-                    role="button"
                     aria-checked={active.sourceType === "temporary" && colorID.includes("n:") && colorID.split("n:")[1].split("|")[0] === active.id}
                     onClick={() => {
                         if (!colorID.includes(",")) {

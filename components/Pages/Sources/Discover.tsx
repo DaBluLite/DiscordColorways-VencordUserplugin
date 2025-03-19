@@ -4,14 +4,12 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-/* eslint-disable react/jsx-key */
-
 import { Toasts, useEffect, useState } from "../../..";
 import { useContextualState } from "../../../api/Hooks";
 import { openModal } from "../../../api/Modals";
 import { Clipboard } from "../../../api/Utils";
 import { StoreItem } from "../../../types";
-import ComboTextBox from "../../ComboTextBox";
+import ComboSearchBox from "../../ComboSearchBox";
 import { CopyIcon, DeleteIcon, DownloadIcon } from "../../Icons";
 import Modal from "../../Modal";
 import RightClickContextMenu from "../../RightClickContextMenu";
@@ -32,23 +30,22 @@ export default function Discover() {
 
     useEffect(() => {
         (async function () {
-            const res: Response = await fetch("https://dablulite.vercel.app/?q=" + encodeURI(searchValue));
+            const res: Response = await fetch("https://www.dablulite.dev/api/colorways/sources?q=" + encodeURI(searchValue));
             const data = await res.json();
             setStoreObject(data.sources);
         })();
     }, []);
 
     return <>
-        <ComboTextBox
+        <ComboSearchBox
             placeholder="Search for sources..."
-            value={searchValue}
-            onInput={setSearchValue}
+            page={3}
         >
             <button
                 className="dc-button dc-button-primary"
                 style={{ marginLeft: "8px", marginTop: "auto", marginBottom: "auto" }}
                 onClick={async function () {
-                    const res: Response = await fetch("https://dablulite.vercel.app/");
+                    const res: Response = await fetch("https://www.dablulite.dev/api/colorways/sources");
                     const data = await res.json();
                     setStoreObject(data.sources);
                 }}
@@ -78,15 +75,15 @@ export default function Discover() {
                 </svg>
                 Refresh
             </button>
-        </ComboTextBox>
+        </ComboSearchBox>
         <div className="dc-selector">
-            {storeObject.map((item: StoreItem) =>
-                item.name.toLowerCase().includes(searchValue.toLowerCase()) ? <RightClickContextMenu menu={<>
+            {storeObject.map((item: StoreItem, i: number) =>
+                item.name.toLowerCase().includes(searchValue.toLowerCase()) ? <RightClickContextMenu key={i} menu={<>
                     <button onClick={() => {
                         Clipboard.copy(item.url);
                         Toasts.show({
                             message: "Copied URL Successfully",
-                            type: 1,
+                            type: "success",
                             id: "copy-url-notify",
                         });
                     }} className="dc-contextmenu-item">

@@ -11,8 +11,8 @@ import { IconProps } from "./Icons";
 import RightClickContextMenu from "./RightClickContextMenu";
 
 export default function (props: {
-    prefix?(): JSX.Element,
-    suffix?(): JSX.Element,
+    prefix?(): React.ReactNode,
+    suffix?(): React.ReactNode,
     menu?: React.ReactNode,
     id: string,
     "aria-invalid"?: boolean,
@@ -21,7 +21,7 @@ export default function (props: {
     text: string,
     descriptions?: string[],
     actions?: {
-        Icon(props: IconProps): JSX.Element,
+        Icon(props: IconProps): React.ReactNode,
         onClick: React.MouseEventHandler<HTMLButtonElement>,
         type: ButtonColors;
     }[];
@@ -34,6 +34,7 @@ export default function (props: {
             className="dc-colorway"
             aria-invalid={props["aria-invalid"]}
             aria-checked={props["aria-checked"]}
+            data-focus={props["data-focus"]}
             role="button"
             onContextMenu={e => {
                 if (props.menu) ocm(e);
@@ -41,7 +42,8 @@ export default function (props: {
             }}
         >
             {props.prefix ? <props.prefix /> : (props.colors ? <div className="dc-color-swatch">
-                {props.colors.map(colorStr => <div
+                {props.colors.map((colorStr: string, i: number) => <div
+                    key={i}
                     className="dc-color-swatch-part"
                     style={{
                         backgroundColor: `#${colorToHex(colorStr)}`,
@@ -52,7 +54,7 @@ export default function (props: {
                 <span className="dc-label">{props.text}</span>
                 {props.descriptions ? <span className="dc-label dc-subnote dc-note">{props.descriptions.join(" • ")}</span> : null}
             </div>
-            {props.suffix ? <props.suffix /> : (props.actions || []).map(action => <Button color={action.type} onClick={action.onClick}><action.Icon width={20} height={20} /></Button>)}
+            {props.suffix ? <props.suffix /> : (props.actions || []).map((action, i: number) => <Button key={i} color={action.type} onClick={action.onClick}><action.Icon width={20} height={20} /></Button>)}
         </div>}
     </RightClickContextMenu>;
 }

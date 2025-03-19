@@ -262,7 +262,6 @@ const defaultPreset: Preset = {
 };
 
 export const contexts: {
-    colorwaysPluginTheme: string,
     colorwaySourceFiles: { name: string, url: string; }[],
     customColorways: { name: string, colorways?: Colorway[], presets?: Preset[]; }[],
     activeColorwayObject: ColorwayObject,
@@ -286,7 +285,6 @@ export const contexts: {
     colorwayThemes: [filename: string, css: string][];
     enabledColorwayThemes: Record<string, boolean>;
 } = {
-    colorwaysPluginTheme: "discord",
     colorwaySourceFiles: [],
     customColorways: [],
     activeColorwayObject: nullColorwayObj,

@@ -5,7 +5,6 @@
  */
 
 import { ContextMenuApi, FluxDispatcher, useEffect } from "..";
-import { Hooks } from "../api";
 
 export default function ({
     children,
@@ -14,8 +13,6 @@ export default function ({
     children: (props: { onContextMenu: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void; }) => React.ReactNode,
     menu: React.ReactNode;
 }) {
-    const theme = Hooks.useTheme();
-
     function Menu() {
         useEffect(() => {
             window.addEventListener("click", () => FluxDispatcher.dispatch({ type: "CONTEXT_MENU_CLOSE" }));
@@ -23,7 +20,7 @@ export default function ({
                 window.removeEventListener("click", () => FluxDispatcher.dispatch({ type: "CONTEXT_MENU_CLOSE" }));
             };
         }, []);
-        return <nav data-theme={theme} className="dc-contextmenu">
+        return <nav className="dc-contextmenu">
             {menu}
         </nav>;
     }

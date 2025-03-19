@@ -11,6 +11,8 @@ import { getIntlMessage } from "@utils/discord";
 import definePlugin from "@utils/types";
 export { waitFor as waitForModule } from "@webpack";
 
+import "./style.css";
+
 import { Discord } from "./api";
 import ColorwaysButton from "./components/ColorwaysButton";
 // Mod-specific imports
@@ -21,7 +23,6 @@ export {
     Forms,
     hljs,
     Popout,
-    ThemeStore,
     Toasts,
     useEffect,
     useReducer,

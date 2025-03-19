@@ -1,83 +1,28 @@
 /*
  * Vencord, a Discord client mod
- * Copyright (c) 2023 Vendicated and contributors
+ * Copyright (c) 2025 Vendicated and contributors
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { useState } from "../../";
-import { Dispatcher } from "../../api";
-import { initContexts, setContext, setContexts, unsavedContexts } from "../../api/Contexts";
-import { useContexts, useContextualState } from "../../api/Hooks";
-import { openModal } from "../../api/Modals";
-import { colorToHex } from "../../api/Utils/Colors";
-import { chooseFile, saveFile } from "../../api/Utils/Fs";
-import { connect } from "../../api/WebSocket";
-import { nullColorwayObj, themes } from "../../constants";
-import { getAutoPresets } from "../../css";
-import { ColorwayObject, Context, ContextKey } from "../../types";
-import ComboTextBox from "../ComboTextBox";
-import FeaturePresenter from "../FeaturePresenter";
-import { CogIcon, DownloadIcon, OpenExternalIcon, PalleteIcon, WirelessIcon } from "../Icons";
-import Modal from "../Modal";
-import SelectionCircle from "../SelectionCircle";
-import Setting from "../Setting";
-import Switch from "../Switch";
-import TabBar from "../TabBar";
-import Tooltip from "../Tooltip";
+import { Dispatcher } from "../../../api";
+import { initContexts, setContext, setContexts, unsavedContexts } from "../../../api/Contexts";
+import { useContexts } from "../../../api/Hooks";
+import { openModal } from "../../../api/Modals";
+import { colorToHex } from "../../../api/Utils/Colors";
+import { chooseFile, saveFile } from "../../../api/Utils/Fs";
+import { connect } from "../../../api/WebSocket";
+import { nullColorwayObj } from "../../../constants";
+import { getAutoPresets } from "../../../css";
+import { ColorwayObject, Context, ContextKey } from "../../../types";
+import FeaturePresenter from "../../FeaturePresenter";
+import { CogIcon, OpenExternalIcon, PalleteIcon, WirelessIcon } from "../../Icons";
+import Modal from "../../Modal";
+import SelectionCircle from "../../SelectionCircle";
+import Setting from "../../Setting";
+import Switch from "../../Switch";
+import Tooltip from "../../Tooltip";
 
-export default function ({ tab = "Settings" }: { tab: string; }) {
-    const [active, setActive] = useState(tab);
-
-    return <TabBar
-        active={active}
-        container={({ children }) => <div className="dc-page-header">{children}</div>}
-        items={[
-            {
-                name: "Settings",
-                component: () => <Settings />
-            },
-            {
-                name: "History",
-                component: () => <History />
-            }
-        ]}
-        onChange={setActive}
-    />;
-}
-
-function History() {
-    const [searchValue, setSearchValue] = useState("");
-    const [colorwayUsageMetrics] = useContextualState("colorwayUsageMetrics");
-    return <>
-        <ComboTextBox
-            value={searchValue}
-            onInput={setSearchValue}
-            placeholder="Search for a Colorway..."
-
-        >
-            <button
-                className="dc-button dc-button-primary"
-                style={{ flexShrink: "0", width: "fit-content" }}
-                onClick={async () => {
-                    saveFile(new File([JSON.stringify(colorwayUsageMetrics)], "colorways_usage_metrics.json", { type: "application/json" }));
-                }}
-            >
-                <DownloadIcon width={14} height={14} />
-                Export usage data
-            </button>
-        </ComboTextBox>
-        <div className="dc-selector" style={{ gridTemplateColumns: "unset", flexGrow: "1" }}>
-            {colorwayUsageMetrics.filter(({ id }) => id?.toLowerCase().includes(searchValue.toLowerCase())).map(color => <div className="dc-colorway">
-                <div className="dc-label-wrapper">
-                    <span className="dc-label">{color.id}</span>
-                    <span className="dc-label dc-subnote dc-note">in {color.source} • {color.uses} uses</span>
-                </div>
-            </div>)}
-        </div>
-    </>;
-}
-
-function Settings() {
+export default function Main() {
     const contexts = useContexts();
 
     return <>
@@ -92,40 +37,16 @@ function Settings() {
                 }} />
             <span className="dc-note">Shows a button on the top of the servers list that launches the DiscordColorways App.</span>
         </Setting>
-        <span className="dc-field-header">App theme</span>
-        <Setting divider>
-            <div style={{
-                display: "flex",
-                gap: "24px"
-            }}>
-                {themes.map(({ name, id, preview }) => <Tooltip
-                    text={name}
-                    position="top"
-                >
-                    {({ onClick, onMouseEnter, onMouseLeave }) => <div className="dc-color-swatch-selectable">
-                        <div
-                            className="dc-color-swatch"
-                            onMouseEnter={onMouseEnter}
-                            onMouseLeave={onMouseLeave}
-                            onClick={e => {
-                                onClick(e);
-                                setContext("colorwaysPluginTheme", id);
-                            }}
-                            style={{ backgroundColor: preview }}
-                        />
-                        {contexts.colorwaysPluginTheme === id ? <SelectionCircle /> : null}
-                    </div>}
-                </Tooltip>)}
-            </div>
-        </Setting>
         <span className="dc-field-header">Auto Colors</span>
         <Setting divider>
             <div style={{
                 display: "flex",
-                gap: "24px"
+                gap: "24px",
+                marginLeft: "4px"
             }}>
-                {Object.values(getAutoPresets("5865f2")).map(({ name, id, colors }) => <Tooltip
+                {Object.values(getAutoPresets("5865f2")).map(({ name, id, colors }, i: number) => <Tooltip
                     text={name}
+                    key={i}
                     position="top"
                 >
                     {({ onClick, onMouseEnter, onMouseLeave }) => <div className="dc-color-swatch-selectable">
@@ -272,7 +193,6 @@ function Settings() {
                             title="Reset DiscordColorways"
                             onFinish={async ({ closeModal }) => {
                                 const resetValues: ([ContextKey, Context<ContextKey>] | [ContextKey, Context<ContextKey>, boolean])[] = [
-                                    ["colorwaysPluginTheme", "discord"],
                                     ["colorwaySourceFiles", []],
                                     ["customColorways", []],
                                     ["activeColorwayObject", nullColorwayObj],
@@ -350,8 +270,8 @@ function Settings() {
             alignItems: "center",
             cursor: "pointer"
         }}>
-            <a role="link" target="_blank" className="dc-button dc-button-primary" style={{ width: "fit-content" }} href="https://github.com/DaBluLite/DiscordColorways">DiscordColorways <OpenExternalIcon width={16} height={16} /></a>
-            <a role="link" target="_blank" className="dc-button dc-button-primary" style={{ width: "fit-content", marginLeft: "8px" }} href="https://github.com/DaBluLite/ProjectColorway">Project Colorway <OpenExternalIcon width={16} height={16} /></a>
+            <a role="link" target="_blank" className="dc-button dc-button-primary" style={{ width: "fit-content" }} href="https://github.com/DaBluLite/DiscordColorways" rel="noreferrer">DiscordColorways <OpenExternalIcon width={16} height={16} /></a>
+            <a role="link" target="_blank" className="dc-button dc-button-primary" style={{ width: "fit-content", marginLeft: "8px" }} href="https://github.com/DaBluLite/ProjectColorway" rel="noreferrer">Project Colorway <OpenExternalIcon width={16} height={16} /></a>
         </div>
     </>;
 }

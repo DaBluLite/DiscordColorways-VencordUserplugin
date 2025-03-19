@@ -79,6 +79,18 @@ export function useContexts(): typeof contexts {
     return get;
 }
 
+export function useCustomContext<T = any>(callback: (context: typeof contexts) => T): T {
+    const [, forceUpdate] = useReducer(n => ~n, 0);
+
+    useEffect(() => {
+        Dispatcher.addListener("COLORWAYS_CONTEXT_UPDATED", () => forceUpdate());
+
+        return () => Dispatcher.removeListener("COLORWAYS_CONTEXT_UPDATED", () => forceUpdate());
+    }, []);
+
+    return callback(contexts);
+}
+
 export function simpleContext<Key extends ContextKey>(context: Key, save = true): [() => Context<Key>, (newVal: Context<Key>) => void, () => void, (context: ContextKey, callback: <Key extends ContextKey>(context: Key, value: Context<Key>) => void) => void] {
     let val: Context<Key> = contexts[context] as Context<Key>;
     let events: Partial<Events> = {};
@@ -185,11 +197,6 @@ export function simpleContextsObject(): { contexts: () => { [key in ContextKey]:
             events[context].push(callback);
         }
     };
-}
-
-export function useTheme(): Context<"colorwaysPluginTheme"> {
-    const [theme] = useContextualState("colorwaysPluginTheme", false);
-    return theme;
 }
 
 export function useTimedState<S>(initialState: S | (() => S), resetEvery: number): [S, Dispatch<SetStateAction<S>>] {

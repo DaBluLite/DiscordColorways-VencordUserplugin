@@ -129,9 +129,13 @@ export interface PresetObject {
 }
 
 export const enum Tabs {
-    Selector,
+    Colorways,
+    Presets,
+    Themes,
     Settings,
+    History,
     Sources,
+    Discover,
     WsConnection,
     ExpandSidebar
 }

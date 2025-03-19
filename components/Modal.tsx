@@ -4,9 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { FocusLock, ThemeStore, useRef } from "..";
-import { Hooks } from "../api";
-import { themes } from "../constants";
+import { FocusLock, useRef } from "..";
 import { ModalProps } from "../types";
 
 export default function ({
@@ -38,11 +36,10 @@ export default function ({
     cancelMsg?: string,
     footer?: React.ReactNode;
 }) {
-    const theme = Hooks.useTheme();
     const cont = useRef(null);
 
     return <FocusLock containerRef={cont}>
-        <div style={style} ref={cont} className={`dc-modal theme-${ThemeStore.theme} ${modalProps.transitionState === 2 ? "closing" : ""} ${modalProps.transitionState === 4 ? "hidden" : ""} ${(themes.find(t => t.id === theme)?.classes || []).join(" ")}`} data-theme={theme}>
+        <div style={style} ref={cont} className={`dc-modal ${modalProps.transitionState === 2 ? "closing" : ""} ${modalProps.transitionState === 4 ? "hidden" : ""}`}>
             <h2 className="dc-modal-header" style={!divider ? { boxShadow: "none" } : {}}>
                 {title}
             </h2>
@@ -57,7 +54,8 @@ export default function ({
                     >
                         {confirmMsg}
                     </button> : null}
-                    {additionalButtons.map(({ type, action, text }) => <button
+                    {additionalButtons.map(({ type, action, text }, i: number) => <button
+                        key={i}
                         className={`dc-button dc-button-md dc-button-${type}`}
                         onClick={() => action({ closeModal: modalProps.onClose })}
                     >
